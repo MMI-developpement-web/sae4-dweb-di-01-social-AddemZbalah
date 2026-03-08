@@ -1,20 +1,22 @@
-import './App.css'
-import LoginForm from './components/LoginForm'
+import LoginForm from './components/LoginForm';
 
+/**
+ * Exemple d'utilisation du composant LoginForm
+ */
 function App() {
   const handleLogin = (email: string, password: string) => {
     console.log('Login attempt:', { email, password });
-    // TODO: Ajoutez ici votre logique d'authentification
+    // Ajoutez ici votre logique d'authentification
   };
 
   const handleForgotPassword = () => {
     console.log('Forgot password clicked');
-    // TODO: Ajoutez ici la logique de réinitialisation de mot de passe
+    // Ajoutez ici la logique de réinitialisation de mot de passe
   };
 
   const handleCreateAccount = () => {
     console.log('Create account clicked');
-    // TODO: Ajoutez ici la logique de création de compte
+    // Ajoutez ici la logique de création de compte
   };
 
   return (
@@ -25,7 +27,7 @@ function App() {
         onCreateAccount={handleCreateAccount}
       />
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
