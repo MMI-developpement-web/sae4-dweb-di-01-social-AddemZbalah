@@ -1,0 +1,20 @@
+{
+  "inputs": [],
+  "servers": {
+    "figma": {
+      "url": "https://mcp.figma.com/mcp",
+      "type": "http"
+    }
+  },
+  "mcp": {
+    "servers": {
+      "context7": {
+        "type": "http",
+        "url": "https://mcp.context7.com/mcp",
+        "headers": {
+          "CONTEXT7_API_KEY": "YOUR_API_KEY"
+        }
+      }
+    }
+  }
+}
