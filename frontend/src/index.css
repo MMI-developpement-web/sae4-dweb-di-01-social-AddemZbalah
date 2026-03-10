@@ -1,26 +1,80 @@
 @import "tailwindcss";
 
+@theme inline {
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-background: var(--background);
+  --color-page-dark: var(--page-dark);
+  --color-foreground: var(--foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
+
+@layer utilities {
+  .bg-connexion {
+    background: var(--gradient-connexion);
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+  }
+
+  html {
+    font-size: var(--font-size);
+  }
+
+  button {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-medium);
+    line-height: 1.5;
+  }
+
+  input {
+    font-size: var(--text-base);
+    font-weight: var(--font-weight-normal);
+    line-height: 1.5;
+  }
+}
+
 :root {
-  font-family: 'Inter', system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
+  --font-size: 16px;
+  --page-dark: #1A1124;
+  --gradient-connexion: radial-gradient(ellipse 75% 75% at 110% 50%, #844AC4 0%, #1A1124 60%);
+  --primary: #844AC4;
+  --primary-foreground: #FFFFFF;
+  --secondary: #F3DAFF;
+  --secondary-foreground: #1A1124;
+  --background: #FFFFFF;
+  --foreground: #1A1124;
+  --border: #F3DAFF;
+  --input: #F3DAFF;
+  --ring: #844AC4;
+  --radius: 0.625rem;
+  --font-weight-medium: 500;
+  --font-weight-normal: 400;
 }
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-
-body {
-  min-height: 100vh;
-}
-
-/* Reset default button and input styles */
-button, input {
-  font-family: inherit;
-}
-
-input:focus {
-  outline: none;
+.dark {
+  --primary: #F3DAFF;
+  --primary-foreground: #1A1124;
+  --secondary: #844AC4;
+  --secondary-foreground: #FFFFFF;
+  --background: #1A1124;
+  --foreground: #FFFFFF;
+  --border: #844AC4;
+  --input: #844AC4;
+  --ring: #F3DAFF;
 }

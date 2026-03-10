@@ -1,10 +1,60 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import './index.css'
-import App from './App.tsx'
+import React from 'react';
+import ReactDOM from 'react-dom/client';
+import { createBrowserRouter, Navigate, RouterProvider } from 'react-router-dom';
+import './index.css';
 
-createRoot(document.getElementById('root')!).render(
-  <StrictMode>
-    <App />
-  </StrictMode>,
-)
+import Connexion from './routes/connexion';
+import Inscription from './routes/inscription';
+import Addposts from './routes/Addposts';
+import Fil from './routes/fil';
+import Home from './routes/home';
+import Dashboard from './routes/dashboard';
+import Settings from './routes/settings';
+import Root from './routes/root';
+
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <Root />,
+    children: [
+      {
+        index: true,
+        element: <Navigate to="/fil" replace />,
+      },
+      {
+        path: 'connexion',
+        element: <Connexion />,
+      },
+      {
+        path: 'inscription',
+        element: <Inscription />,
+      },
+      {
+        path: 'fil',
+        element: <Fil />,
+      },
+      {
+        path: 'home',
+        element: <Home />,
+      },
+      {
+        path: 'dashboard',
+        element: <Dashboard />,
+      },
+      {
+        path: 'add-post',
+        element: <Addposts />,
+      },
+      {
+        path: 'settings',
+        element: <Settings />,
+      },
+    ],
+  },
+]);
+
+ReactDOM.createRoot(document.getElementById('root')!).render(
+  <React.StrictMode>
+    <RouterProvider router={router} />
+  </React.StrictMode>,
+);
