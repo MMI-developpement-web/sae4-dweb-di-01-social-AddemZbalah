@@ -21,7 +21,6 @@ interface ConnexionVerifProps extends VariantProps<typeof verificationItemVarian
   children: ReactNode;
   icon?: string;
   ariaLabel?: string;
-  className?: string;
 }
 
 export default function ConnexionVerif({
@@ -29,11 +28,10 @@ export default function ConnexionVerif({
   status,
   icon = "/assets/Check circle.svg",
   ariaLabel,
-  className,
 }: ConnexionVerifProps) {
   return (
     <div
-      className={cn(verificationItemVariants({ status }), className)}
+      className={cn(verificationItemVariants({ status }))}
       role="status"
       aria-label={ariaLabel}
     >

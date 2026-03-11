@@ -33,14 +33,13 @@ export default function InputLogin({
   size,
   type = "text",
   placeholder,
-  className,
   ...props
 }: InputLoginProps & Omit<InputHTMLAttributes<HTMLInputElement>, keyof InputLoginProps>) {
   return (
     <input
       type={type}
       placeholder={placeholder}
-      className={cn(inputVariants({ variant, size }), className)}
+      className={cn(inputVariants({ variant, size }))}
       {...props}
     />
   );

@@ -1,6 +1,6 @@
 import type { ReactElement } from "react";
 import { NavLink } from "react-router-dom";
-import { cva } from "class-variance-authority";
+import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 
 const navItemVariants = cva(
@@ -18,6 +18,29 @@ const navItemVariants = cva(
 	},
 );
 
+const navContainerVariants = cva(
+	"flex h-screen w-80 flex-col border-r border-primary/20 bg-page-dark",
+	{
+		variants: {
+			mode: {
+				embedded: "",
+				overlay: "shadow-2xl",
+			},
+		},
+		defaultVariants: {
+			mode: "embedded",
+		},
+	},
+);
+
+const navHeaderVariants = cva("border-b border-primary/20 px-8 py-8");
+const navLogoVariants = cva("h-10 w-auto object-contain");
+const navContentVariants = cva("flex-1 px-4 py-8");
+const navListVariants = cva("space-y-2");
+const navIconVariants = cva("h-6 w-6");
+const navLabelVariants = cva("text-xl font-medium leading-none");
+const navFooterVariants = cva("h-24 border-t border-primary/20");
+
 type NavItem = {
 	label: string;
 	to: string;
@@ -31,34 +54,40 @@ const navItems: NavItem[] = [
 	{ label: "Parametres", to: "/settings", icon: SettingsIcon },
 ];
 
-export default function Nav() {
+interface NavProps {
+	onNavigate?: () => void;
+	mode?: VariantProps<typeof navContainerVariants>["mode"];
+}
+
+export default function Nav({ onNavigate, mode }: NavProps) {
 	return (
-		<aside className="flex h-screen w-80 flex-col border-r border-primary/20 bg-background">
-			<header className="border-b border-primary/20 px-8 py-8">
+		<aside className={cn(navContainerVariants({ mode }))}>
+			<header className={cn(navHeaderVariants())}>
 				<img
 					src="/assets/image 5 (1).png"
 					alt="Logo Zbalah"
-					className="h-10 w-auto object-contain"
+					className={cn(navLogoVariants())}
 				/>
 			</header>
 
-			<nav className="flex-1 px-4 py-8" aria-label="Navigation principale">
-				<ul className="space-y-2">
+			<nav className={cn(navContentVariants())} aria-label="Navigation principale">
+				<ul className={cn(navListVariants())}>
 					{navItems.map((item) => (
 						<li key={item.label}>
 							<NavLink
 								to={item.to}
+								onClick={onNavigate}
 								className={({ isActive }) => cn(navItemVariants({ active: isActive }))}
 							>
-								<item.icon className="h-6 w-6" />
-								<span className="text-3xl font-medium leading-none">{item.label}</span>
+								<item.icon className={cn(navIconVariants())} />
+								<span className={cn(navLabelVariants())}>{item.label}</span>
 							</NavLink>
 						</li>
 					))}
 				</ul>
 			</nav>
 
-			<footer className="h-24 border-t border-primary/20" aria-hidden="true" />
+			<footer className={cn(navFooterVariants())} aria-hidden="true" />
 		</aside>
 	);
 }

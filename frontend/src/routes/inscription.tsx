@@ -128,9 +128,8 @@ export default function Inscription() {
           <div className="mt-6 w-full">
             <ConnexionBtn
               variant="lavender"
-              size="lg"
+              size="full"
               type="submit"
-              className="w-full"
               disabled={!isFormValid}
             >
               S'inscrire
@@ -151,10 +150,9 @@ export default function Inscription() {
             </p>
             <ConnexionBtn
               variant="lavender"
-              size="lg"
+              size="full"
               type="button"
               onClick={handleLogin}
-              className="w-full"
             >
               Se connecter
             </ConnexionBtn>

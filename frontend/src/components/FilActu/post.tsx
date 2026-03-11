@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
+import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../lib/utils";
-import type { ReactNode } from "react";
 
 // SVG Icons as components
 const MessageCircleIcon = () => (
@@ -86,12 +86,11 @@ function ActionButton({
   count,
   ariaLabel,
   size,
-  className,
   ...props
-}: ActionButtonProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
+}: ActionButtonProps & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className">) {
   return (
     <button
-      className={cn(actionButtonVariants({ size }), className)}
+      className={cn(actionButtonVariants({ size }))}
       aria-label={ariaLabel}
       {...props}
     >
@@ -119,6 +118,99 @@ const postContentVariants = cva(
   }
 );
 
+const postVariants = cva(
+  "flex flex-col bg-page-dark transition-colors duration-200 hover:bg-primary/8",
+  {
+    variants: {
+      density: {
+        compact: "gap-2 px-3 py-2",
+        comfy: "gap-3 px-4 py-3",
+      },
+    },
+    defaultVariants: {
+      density: "comfy",
+    },
+  }
+);
+
+const postHeaderVariants = cva("flex gap-3");
+const avatarImageVariants = cva("rounded-full object-cover ring-1 ring-primary/30", {
+  variants: {
+    size: {
+      sm: "h-7 w-7",
+      md: "h-8 w-8",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+const authorNameVariants = cva("font-semibold text-secondary leading-tight", {
+  variants: {
+    size: {
+      sm: "text-[0.58rem]",
+      md: "text-xs",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+const authorMetaVariants = cva("text-secondary/70", {
+  variants: {
+    size: {
+      sm: "text-[0.52rem]",
+      md: "text-[0.6rem]",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+const timestampVariants = cva("text-secondary/60", {
+  variants: {
+    size: {
+      sm: "text-[0.52rem]",
+      md: "text-[0.6rem]",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+const separatorVariants = cva("text-secondary/40", {
+  variants: {
+    size: {
+      sm: "text-[0.52rem]",
+      md: "text-[0.6rem]",
+    },
+  },
+  defaultVariants: {
+    size: "sm",
+  },
+});
+
+const moreActionsButtonVariants = cva(
+  "flex items-center justify-center rounded-full text-secondary/60 transition-all duration-200 hover:bg-primary/20 hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary",
+  {
+    variants: {
+      size: {
+        sm: "h-5 w-5",
+        md: "h-6 w-6",
+      },
+    },
+    defaultVariants: {
+      size: "sm",
+    },
+  }
+);
+
+const actionsGroupVariants = cva("flex items-center justify-between gap-1 pt-1");
+
 // Main Post Component
 interface PostProps {
   authorName: string;
@@ -133,7 +225,6 @@ interface PostProps {
   onShare?: () => void;
   onLike?: () => void;
   onMoreActions?: () => void;
-  className?: string;
 }
 
 export default function Post({
@@ -149,35 +240,29 @@ export default function Post({
   onShare,
   onLike,
   onMoreActions,
-  className,
 }: PostProps) {
   return (
-    <article
-      className={cn(
-        "flex flex-col gap-3 bg-page-dark px-4 py-3 transition-colors duration-200 hover:bg-primary/8",
-        className
-      )}
-    >
+    <article className={cn(postVariants({ density: "comfy" }))}>
       {/* Header: Author info */}
-      <header className="flex gap-3">
+      <header className={cn(postHeaderVariants())}>
         {/* Avatar */}
         <figure className="flex-shrink-0">
           <img
             src={authorAvatar}
             alt={authorName}
-            className="h-7 w-7 rounded-full object-cover ring-1 ring-primary/30"
+            className={cn(avatarImageVariants({ size: "sm" }))}
           />
         </figure>
 
         {/* Author metadata */}
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-1.5">
-            <p className="font-semibold text-secondary text-[0.58rem] leading-tight">
+            <p className={cn(authorNameVariants({ size: "sm" }))}>
               {authorName}
             </p>
-            <p className="text-[0.52rem] text-secondary/70">@{authorHandle}</p>
-            <span className="text-[0.52rem] text-secondary/40">·</span>
-            <time className="text-[0.52rem] text-secondary/60">
+            <p className={cn(authorMetaVariants({ size: "sm" }))}>@{authorHandle}</p>
+            <span className={cn(separatorVariants({ size: "sm" }))}>·</span>
+            <time className={cn(timestampVariants({ size: "sm" }))}>
               {timestamp}
             </time>
           </div>
@@ -187,7 +272,7 @@ export default function Post({
         {onMoreActions && (
           <button
             onClick={onMoreActions}
-            className="flex h-5 w-5 items-center justify-center rounded-full text-secondary/60 transition-all duration-200 hover:bg-primary/20 hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            className={cn(moreActionsButtonVariants({ size: "sm" }))}
             aria-label="Plus d'options"
           >
             <svg
@@ -210,7 +295,7 @@ export default function Post({
 
       {/* Action buttons */}
       <section
-        className="flex items-center justify-between gap-1 pt-1"
+        className={cn(actionsGroupVariants())}
         role="group"
         aria-label="Actions post"
       >

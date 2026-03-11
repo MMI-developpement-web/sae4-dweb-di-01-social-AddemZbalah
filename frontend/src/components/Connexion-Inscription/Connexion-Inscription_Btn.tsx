@@ -17,6 +17,7 @@ const buttonLoginVariants = cva(
         sm: "h-10 px-4 text-sm",
         md: "h-12 px-6 text-base",
         lg: "h-14 px-8 text-lg",
+        full : "h-14 w-full"
       },
     },
     defaultVariants: {
@@ -34,11 +35,10 @@ export default function ConnexionBtn({
   children,
   variant,
   size,
-  className,
   ...props
 }: ConnexionBtnProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={cn(buttonLoginVariants({ variant, size }), className)} {...props}>
+    <button className={cn(buttonLoginVariants({ variant, size }))} {...props}>
       {children}
     </button>
   );
