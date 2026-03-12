@@ -3,7 +3,6 @@ import { useEffect, useId, useState } from "react";
 import { NavLink } from "react-router-dom";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
-import DashboardDetails from "../ui/Dashboard/dashboardDetails";
 
 // ── Sidebar nav ──────────────────────────────────────────────────────────────
 
@@ -33,32 +32,81 @@ const NAV_ITEMS: NavItem[] = [
   { label: "Paramètres",   to: "/settings",     icon: <span className="flex h-6 w-6 shrink-0 items-center justify-center"><SettingsIcon /></span> },
 ];
 
-// ── Stat cards data ──────────────────────────────────────────────────────────
+// ── Editable field ────────────────────────────────────────────────────────────
 
-const STAT_CARDS = [
-  {
-    id: "profil-views",
-    icon: <UsersIcon />,
-    label: "Total Utilisateurs qui ont vu votre profil",
-    value: "12,543",
-  },
-  {
-    id: "posts-month",
-    icon: <TrendingIcon />,
-    label: "Nombre de posts ce mois-ci",
-    value: "68",
-  },
-  {
-    id: "time-spent",
-    icon: <ClockIcon />,
-    label: "Nombre total d'heure passé sur l'app",
-    value: "68.4H",
-  },
-];
+function EditableField({ label, initialValue }: { label: string; initialValue: string }) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [value, setValue] = useState(initialValue);
+  const [draft, setDraft] = useState(initialValue);
+  const inputId = useId();
+
+  function handleSave() {
+    setValue(draft);
+    setIsEditing(false);
+  }
+
+  function handleCancel() {
+    setDraft(value);
+    setIsEditing(false);
+  }
+
+  return (
+    <div className="flex flex-col gap-2 border-b border-primary/10 py-5 lg:py-7">
+      {isEditing ? (
+        <>
+          <label htmlFor={inputId} className="text-base font-semibold text-secondary lg:text-xl">
+            {label}
+          </label>
+          <div className="flex flex-wrap items-center gap-2 lg:gap-3">
+            <input
+              id={inputId}
+              type="text"
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onKeyDown={(e) => { if (e.key === "Enter") handleSave(); if (e.key === "Escape") handleCancel(); }}
+              autoFocus
+              className="flex-1 rounded-xl border border-primary/40 bg-white/5 px-4 py-2 text-base text-secondary placeholder:text-secondary/40 focus:outline-none focus:ring-2 focus:ring-primary lg:text-lg"
+            />
+            <button
+              type="button"
+              onClick={handleSave}
+              className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white hover:bg-primary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            >
+              Sauvegarder
+            </button>
+            <button
+              type="button"
+              onClick={handleCancel}
+              className="rounded-xl px-4 py-2 text-sm font-semibold text-secondary/60 hover:text-secondary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+            >
+              Annuler
+            </button>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="flex flex-wrap items-baseline gap-3 lg:gap-6">
+            <span className="text-base font-semibold text-secondary whitespace-nowrap lg:text-xl">
+              {label}
+            </span>
+            <span className="text-base font-semibold text-secondary lg:text-xl">{value}</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => { setDraft(value); setIsEditing(true); }}
+            className="w-fit text-sm text-secondary/60 underline decoration-solid text-left hover:text-secondary/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary lg:text-lg"
+          >
+            Modifier
+          </button>
+        </>
+      )}
+    </div>
+  );
+}
 
 // ── Page ─────────────────────────────────────────────────────────────────────
 
-export default function Dashboard() {
+export default function Utilisateurs() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const sidebarId = useId();
 
@@ -115,10 +163,8 @@ export default function Dashboard() {
           id={sidebarId}
           className={cn(
             "flex h-full w-72 shrink-0 flex-col border-r border-primary/20 bg-page-dark transition-transform duration-300 ease-out",
-            // Mobile : drawer fixed
             "fixed inset-y-0 left-0 z-40",
             isSidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full",
-            // Desktop : static en flux
             "lg:static lg:w-80 lg:translate-x-0 lg:shadow-none lg:transition-none"
           )}
           aria-label="Navigation admin"
@@ -152,19 +198,15 @@ export default function Dashboard() {
         {/* ── Main content ── */}
         <main
           className="flex flex-1 flex-col overflow-y-auto bg-fil px-6 pt-20 pb-8 lg:px-10 lg:pt-11 lg:pb-11"
-          aria-label="Tableau de bord"
+          aria-label="Infos utilisateur"
         >
           {/* Page heading */}
           <header className="mb-8 flex items-start justify-between lg:mb-11">
-            <div className="flex flex-col gap-2">
-              <h1 className="text-4xl font-semibold text-secondary lg:text-5xl">
-                Tableau de{" "}
-                <span className="text-primary">bord</span>
-              </h1>
-              <p className="text-base text-secondary/60 lg:text-lg">
-                Vue d'ensemble de votre plateforme
-              </p>
-            </div>
+            <h1 className="text-4xl font-semibold text-secondary lg:text-5xl">
+              Infos{" "}
+              <br className="lg:hidden" />
+              <span className="text-primary">utilisateur</span>
+            </h1>
             <img
               src="/assets/image 5 (1).png"
               alt="Logo Zbalah"
@@ -172,20 +214,37 @@ export default function Dashboard() {
             />
           </header>
 
-          {/* Stat cards */}
-          <section
-            className="grid grid-cols-1 gap-5 lg:gap-6 lg:grid-cols-3"
-            aria-label="Statistiques"
-          >
-            {STAT_CARDS.map((card) => (
-              <DashboardDetails
-                key={card.id}
-                icon={card.icon}
-                label={card.label}
-                value={card.value}
-              />
-            ))}
-          </section>
+          {/* Avatar */}
+          <div className="mb-8 lg:mb-10">
+            <div className="flex h-[90px] w-[90px] items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10 lg:h-[140px] lg:w-[140px]">
+              <AvatarIcon />
+            </div>
+          </div>
+
+          {/* Info fields */}
+          <div className="flex w-full max-w-xl flex-col">
+            <EditableField label="Nom d'utilisateur :" initialValue="Alex Chen" />
+            <EditableField label="Tag :" initialValue="@alexchen" />
+            <EditableField label="Adresse email :" initialValue="alexchen@outlook.fr" />
+
+            {/* Password — read-only */}
+            <div className="flex flex-col gap-2 py-5 lg:py-7">
+              <div className="flex flex-wrap items-baseline gap-3 lg:gap-6">
+                <span className="text-base font-semibold text-secondary whitespace-nowrap lg:text-xl">
+                  Mot de passe :
+                </span>
+                <span className="text-base font-semibold text-secondary tracking-[0.3em] lg:text-xl">
+                  ●●●●●●●
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5">
+                <InfoCircleIcon />
+                <span className="text-sm text-secondary/60 lg:text-base">
+                  Ne peut pas être modifier
+                </span>
+              </div>
+            </div>
+          </div>
         </main>
       </div>
     </>
@@ -230,25 +289,25 @@ function SettingsIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-full" aria-hidden="true">
       <circle cx="12" cy="12" r="3" />
-      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z" />
+      <path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.2a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1-.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.2a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3h.1a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.2a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8v.1a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.2a1.7 1.7 0 0 0-1.5 1z" />
     </svg>
   );
 }
 
-function TrendingIcon() {
+function AvatarIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-full" aria-hidden="true">
-      <polyline points="23 6 13.5 15.5 8.5 10.5 1 18" />
-      <polyline points="17 6 23 6 23 12" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="h-12 w-12 text-primary/50 lg:h-20 lg:w-20" aria-hidden="true">
+      <circle cx="12" cy="8" r="4" />
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" />
     </svg>
   );
 }
 
-function ClockIcon() {
+function InfoCircleIcon() {
   return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="size-full" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="h-4 w-4 shrink-0 text-secondary/60" aria-hidden="true">
       <circle cx="12" cy="12" r="10" />
-      <polyline points="12 6 12 12 16 14" />
+      <path d="M12 8v4M12 16h.01" />
     </svg>
   );
 }

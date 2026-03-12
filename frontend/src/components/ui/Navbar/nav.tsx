@@ -26,9 +26,29 @@ const navContainerVariants = cva(
 				embedded: "",
 				overlay: "shadow-2xl",
 			},
+			/**
+			 * position:
+			 *   drawer  — fixed sur mobile, devient static à lg (responsive)
+			 *   static  — toujours en flux (hors-page, tests, etc.)
+			 */
+			position: {
+				drawer:
+					"fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-out lg:static lg:inset-y-auto lg:z-auto lg:translate-x-0 lg:shadow-none lg:transition-none",
+				static: "static",
+			},
+			/**
+			 * drawerState: contrôle l'animation du drawer mobile.
+			 * Ignoré quand position="static".
+			 */
+			drawerState: {
+				open: "translate-x-0 shadow-2xl",
+				closed: "-translate-x-full",
+			},
 		},
 		defaultVariants: {
 			mode: "embedded",
+			position: "static",
+			drawerState: "closed",
 		},
 	},
 );
@@ -38,7 +58,7 @@ const navLogoVariants = cva("h-10 w-auto object-contain");
 const navContentVariants = cva("flex-1 px-4 py-8");
 const navListVariants = cva("space-y-2");
 const navIconVariants = cva("h-6 w-6");
-const navLabelVariants = cva("text-xl font-medium leading-none");
+const navLabelVariants = cva("text-base font-medium leading-none");
 const navFooterVariants = cva("h-24 border-t border-primary/20");
 
 type NavItem = {
@@ -55,13 +75,16 @@ const navItems: NavItem[] = [
 ];
 
 interface NavProps {
+	id?: string;
 	onNavigate?: () => void;
 	mode?: VariantProps<typeof navContainerVariants>["mode"];
+	position?: VariantProps<typeof navContainerVariants>["position"];
+	drawerState?: VariantProps<typeof navContainerVariants>["drawerState"];
 }
 
-export default function Nav({ onNavigate, mode }: NavProps) {
+export default function Nav({ id, onNavigate, mode, position, drawerState }: NavProps) {
 	return (
-		<aside className={cn(navContainerVariants({ mode }))}>
+		<aside id={id} className={cn(navContainerVariants({ mode, position, drawerState }))}>
 			<header className={cn(navHeaderVariants())}>
 				<img
 					src="/assets/image 5 (1).png"

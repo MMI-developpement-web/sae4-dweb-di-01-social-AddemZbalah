@@ -21,6 +21,17 @@
   .bg-connexion {
     background: var(--gradient-connexion);
   }
+
+  .bg-fil {
+    background: var(--gradient-fil);
+  }
+
+  .scrollbar-hide {
+    scrollbar-width: none;
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
 }
 
 @layer base {
@@ -53,6 +64,7 @@
   --font-size: 16px;
   --page-dark: #1A1124;
   --gradient-connexion: radial-gradient(ellipse 75% 75% at 110% 50%, #844AC4 0%, #1A1124 60%);
+  --gradient-fil: radial-gradient(ellipse 60% 50% at 100% 100%, #844AC4 0%, #1A1124 60%);
   --primary: #844AC4;
   --primary-foreground: #FFFFFF;
   --secondary: #F3DAFF;

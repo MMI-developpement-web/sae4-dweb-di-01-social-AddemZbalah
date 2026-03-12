@@ -1,6 +1,8 @@
 import { useEffect, useId, useState } from "react";
 import Post from "../ui/FilActu/post";
 import Nav from "../ui/Navbar/nav";
+import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
+import Searchbar from "../ui/Searchbar/searchbar";
 
 const FEED_POSTS = [
   {
@@ -75,39 +77,31 @@ const FEED_POSTS = [
   },
 ];
 
-const styles = {
-  page: "flex h-screen flex-col bg-page-dark",
-  header: "sticky top-0 z-20 border-b border-primary/30 bg-page-dark/98 px-4 py-4 backdrop-blur-sm",
-  burgerButton:
-    "inline-flex h-10 w-10 items-center justify-center rounded-md text-secondary transition-colors hover:bg-secondary/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
-  list: "flex flex-1 flex-col gap-0 overflow-y-auto",
-  listItem: "list-none border-b border-primary/20",
-  footer: "border-t border-primary/20 bg-page-dark/95 px-4 py-6 text-center",
-  overlayBase: "fixed inset-0 z-30 bg-black/55 transition-opacity duration-300",
-  sidebarBase: "fixed inset-y-0 left-0 z-40 transform transition-transform duration-300 ease-out",
-};
-
-const overlayVariants = {
-  open: "pointer-events-auto opacity-100",
-  closed: "pointer-events-none opacity-0",
-};
-
-const sidebarVariants = {
-  open: "translate-x-0",
-  closed: "-translate-x-full",
-};
+const SUGGESTED_USERS: SuggestionUser[] = [
+  {
+    id: "suggestion-1",
+    name: "Marie Dubois",
+    handle: "marie_d_design",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
+    ctaLabel: "Suivre",
+  },
+  {
+    id: "suggestion-2",
+    name: "Alex Chen",
+    handle: "alexc_dev",
+    avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
+    ctaLabel: "Suivre",
+  },
+];
 
 export default function Fil() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const sidebarId = useId();
+  const navId = useId();
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        setIsSidebarOpen(false);
-      }
+      if (event.key === "Escape") setIsSidebarOpen(false);
     };
-
     window.addEventListener("keydown", onKeyDown);
     return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
@@ -116,85 +110,121 @@ export default function Fil() {
     console.log(`Action '${action}' sur le post ${postId}`);
   };
 
+  const handleFollow = (user: SuggestionUser) => {
+    console.log(`Follow ${user.handle}`);
+  };
+
   return (
     <>
+      {/* Backdrop mobile — scrim derrière le drawer */}
       <div
-        className={`${styles.overlayBase} ${isSidebarOpen ? overlayVariants.open : overlayVariants.closed}`}
+        className={
+          isSidebarOpen
+            ? "fixed inset-0 z-30 bg-black/55 transition-opacity duration-300 lg:hidden pointer-events-auto opacity-100"
+            : "fixed inset-0 z-30 bg-black/55 transition-opacity duration-300 lg:hidden pointer-events-none opacity-0"
+        }
         onClick={() => setIsSidebarOpen(false)}
         aria-hidden="true"
       />
 
-      <div
-        className={`${styles.sidebarBase} ${isSidebarOpen ? sidebarVariants.open : sidebarVariants.closed}`}
-        id={sidebarId}
-        role="dialog"
-        aria-label="Menu de navigation"
-        aria-hidden={!isSidebarOpen}
+      {/* En-tête mobile — flottante au-dessus du fil dans l'espace du mt-16 */}
+      <header
+        className="fixed inset-x-0 top-0 z-20 flex h-16 items-center justify-between px-5 pointer-events-none lg:hidden"
+        aria-label="En-tête mobile"
       >
-        <Nav onNavigate={() => setIsSidebarOpen(false)} mode="overlay" />
-      </div>
+        <button
+          type="button"
+          className="pointer-events-auto inline-flex h-12 w-12 items-center justify-center rounded-xl text-secondary transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary"
+          aria-label={isSidebarOpen ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-expanded={isSidebarOpen}
+          aria-controls={navId}
+          onClick={() => setIsSidebarOpen((o) => !o)}
+        >
+          <svg
+            className="h-8 w-8"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            aria-hidden="true"
+          >
+            <line x1="4" y1="7" x2="20" y2="7" />
+            <line x1="4" y1="12" x2="20" y2="12" />
+            <line x1="4" y1="17" x2="20" y2="17" />
+          </svg>
+        </button>
+        <img
+          src="/assets/image 5 (1).png"
+          alt="Logo Zbalah"
+          className="pointer-events-auto h-9 w-auto object-contain"
+        />
+      </header>
 
+      {/*
+       * Layout principal — flex-row sur desktop, colonne unique sur mobile.
+       * La Nav est une seule instance :
+       *   mobile  → fixed (drawer glissant)
+       *   desktop → static (colonne gauche en flux)
+       */}
       <main
-        className={styles.page}
-        role="feed"
-        aria-label="Fil d'actualite"
+        className="flex h-screen items-start overflow-hidden bg-fil justify-center lg:justify-start"
+        aria-label="Fil d'actualité"
       >
-        <header className={styles.header}>
-          <div className="flex items-center justify-between">
-            <button
-              type="button"
-              className={styles.burgerButton}
-              aria-label={isSidebarOpen ? "Fermer le menu" : "Ouvrir le menu"}
-              aria-expanded={isSidebarOpen}
-              aria-controls={sidebarId}
-              onClick={() => setIsSidebarOpen((open) => !open)}
-            >
-              <svg
-                className="h-7 w-7"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                aria-hidden="true"
-              >
-                <line x1="4" y1="7" x2="20" y2="7" />
-                <line x1="4" y1="12" x2="20" y2="12" />
-                <line x1="4" y1="17" x2="20" y2="17" />
-              </svg>
-            </button>
+        {/* Barre de navigation latérale */}
+        <Nav
+          id={navId}
+          position="drawer"
+          drawerState={isSidebarOpen ? "open" : "closed"}
+          onNavigate={() => setIsSidebarOpen(false)}
+        />
 
-            <img
-              src="/assets/image 5 (1).png"
-              alt="Logo Zbalah"
-              className="h-10 w-auto object-contain"
-            />
-          </div>
-        </header>
+        {/* Colonne centrale — fil de posts */}
+        <section
+          className="flex w-[90vw] max-w-xl shrink-0 flex-col overflow-y-auto scrollbar-hide mt-24 border-x border-t border-primary/20 lg:mt-0 lg:w-[52rem] lg:max-w-none lg:border-t-0"
+          aria-label="Posts"
+        >
+          {/* Liste des posts */}
+          <ul className="flex flex-col" role="list">
+            {FEED_POSTS.map((post) => (
+              <li key={post.id} className="list-none border-b border-primary/20">
+                <Post
+                  authorName={post.authorName}
+                  authorHandle={post.authorHandle}
+                  authorAvatar={post.authorAvatar}
+                  timestamp={post.timestamp}
+                  content={post.content}
+                  commentCount={post.commentCount}
+                  shareCount={post.shareCount}
+                  likeCount={post.likeCount}
+                  onComment={() => handlePostAction(post.id, "comment")}
+                  onShare={() => handlePostAction(post.id, "share")}
+                  onLike={() => handlePostAction(post.id, "like")}
+                  onMoreActions={() => handlePostAction(post.id, "more")}
+                />
+              </li>
+            ))}
+          </ul>
 
-        <ul className={styles.list} role="list">
-          {FEED_POSTS.map((post) => (
-            <li key={post.id} className={styles.listItem}>
-              <Post
-                authorName={post.authorName}
-                authorHandle={post.authorHandle}
-                authorAvatar={post.authorAvatar}
-                timestamp={post.timestamp}
-                content={post.content}
-                commentCount={post.commentCount}
-                shareCount={post.shareCount}
-                likeCount={post.likeCount}
-                onComment={() => handlePostAction(post.id, "comment")}
-                onShare={() => handlePostAction(post.id, "share")}
-                onLike={() => handlePostAction(post.id, "like")}
-                onMoreActions={() => handlePostAction(post.id, "more")}
-              />
-            </li>
-          ))}
-        </ul>
+          <footer className="border-t border-primary/20 px-4 py-6 text-center">
+            <p className="text-xs text-secondary/50">Fin du fil</p>
+          </footer>
+        </section>
 
-        <footer className={styles.footer}>
-          <p className="text-xs text-secondary/50">Fin du fil</p>
-        </footer>
+        {/* Colonne droite — desktop uniquement */}
+        <aside
+          className="hidden lg:flex lg:w-[28rem] lg:shrink-0 lg:flex-col lg:gap-4 lg:overflow-y-auto lg:scrollbar-hide lg:border-l lg:border-primary/20 lg:p-4"
+          aria-label="Recherche et suggestions"
+        >
+          <Searchbar variant="subtle" size="sm" placeholder="Rechercher" />
+          <Suggestions
+            suggestions={SUGGESTED_USERS}
+            size="md"
+            rowDensity="compact"
+            followVariant="lavender"
+            followSize="sm"
+            onFollow={handleFollow}
+          />
+        </aside>
       </main>
     </>
   );

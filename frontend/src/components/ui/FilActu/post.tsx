@@ -60,12 +60,12 @@ const ShareIcon = () => (
 
 // Action button component
 const actionButtonVariants = cva(
-  "inline-flex items-center gap-1.5 px-0 py-0 text-secondary/60 transition-all duration-200 hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-page-dark",
+  "inline-flex items-center gap-2 px-0 py-0 text-secondary/60 transition-all duration-200 hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-page-dark",
   {
     variants: {
       size: {
-        sm: "h-[1.09rem] text-[0.45rem]",
-        md: "h-6 text-xs",
+        sm: "h-8 text-xs",
+        md: "h-9 text-sm",
       },
     },
     defaultVariants: {
@@ -94,7 +94,7 @@ function ActionButton({
       aria-label={ariaLabel}
       {...props}
     >
-      <div className="flex h-2 w-2 items-center justify-center">
+      <div className="flex h-4 w-4 items-center justify-center">
         {icon}
       </div>
       {count !== undefined && <span className="font-medium">{count}</span>}
@@ -149,8 +149,8 @@ const avatarImageVariants = cva("rounded-full object-cover ring-1 ring-primary/3
 const authorNameVariants = cva("font-semibold text-secondary leading-tight", {
   variants: {
     size: {
-      sm: "text-[0.58rem]",
-      md: "text-xs",
+      sm: "text-sm",
+      md: "text-base",
     },
   },
   defaultVariants: {
@@ -161,8 +161,8 @@ const authorNameVariants = cva("font-semibold text-secondary leading-tight", {
 const authorMetaVariants = cva("text-secondary/70", {
   variants: {
     size: {
-      sm: "text-[0.52rem]",
-      md: "text-[0.6rem]",
+      sm: "text-sm",
+      md: "text-base",
     },
   },
   defaultVariants: {
@@ -304,27 +304,27 @@ export default function Post({
           count={commentCount}
           ariaLabel={`${commentCount} commentaires`}
           onClick={onComment}
-          size="sm"
+          size="md"
         />
         <ActionButton
           icon={<RepeatIcon />}
           count={shareCount}
           ariaLabel={`${shareCount} partages`}
           onClick={onShare}
-          size="sm"
+          size="md"
         />
         <ActionButton
           icon={<HeartIcon />}
           count={likeCount}
           ariaLabel={`${likeCount} likes`}
           onClick={onLike}
-          size="sm"
+          size="md"
         />
         <ActionButton
           icon={<ShareIcon />}
           ariaLabel="Partager"
           onClick={onMoreActions}
-          size="sm"
+          size="md"
         />
       </section>
     </article>

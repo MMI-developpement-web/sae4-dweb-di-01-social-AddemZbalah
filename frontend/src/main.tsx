@@ -9,6 +9,7 @@ import Addposts from './routes/Addposts';
 import Fil from './routes/fil';
 import Home from './routes/home';
 import Dashboard from './routes/dashboard';
+import Utilisateurs from './routes/utilisateurs';
 import Settings from './routes/settings';
 import Root from './routes/root';
 
@@ -40,6 +41,10 @@ const router = createBrowserRouter([
       {
         path: 'dashboard',
         element: <Dashboard />,
+      },
+      {
+        path: 'utilisateurs',
+        element: <Utilisateurs />,
       },
       {
         path: 'add-post',
