@@ -1,7 +1,7 @@
 import type { ReactElement } from "react";
 import { NavLink } from "react-router-dom";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import { cn } from "../../../lib/utils";
 
 const navItemVariants = cva(
 	"flex items-center gap-4 rounded-xl px-4 py-4 text-secondary transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",

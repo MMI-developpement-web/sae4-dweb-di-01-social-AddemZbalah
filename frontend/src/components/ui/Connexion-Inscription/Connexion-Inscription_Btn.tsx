@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
-import { cn } from "../../lib/utils";
+import { cn } from "../../../lib/utils";
 
 const buttonLoginVariants = cva(
   "w-auto inline-flex items-center justify-center rounded-full font-semibold transition-all duration-300 focus:outline-none focus:ring-2 disabled:opacity-50 disabled:pointer-events-none cursor-pointer",
