@@ -8,12 +8,12 @@ const searchbarContainerVariants = cva(
 		variants: {
 			variant: {
 				default: "border-secondary/80 bg-black/5",
-				subtle: "border-secondary/40 bg-page-dark/40",
+				subtle: "border-primary/70 bg-page-dark/40",
 			},
 			size: {
 				sm: "h-12 gap-2 px-4",
 				md: "h-14 gap-3 px-5",
-				lg: "h-[68px] gap-3.5 px-5",
+				lg: "h-16 gap-4 px-5",
 			},
 		},
 		defaultVariants: {
@@ -43,7 +43,7 @@ const searchbarInputVariants = cva(
 			size: {
 				sm: "text-base font-medium",
 				md: "text-lg font-semibold",
-				lg: "text-[20px] font-semibold",
+				lg: "text-xl font-semibold",
 			},
 		},
 		defaultVariants: {
@@ -62,7 +62,7 @@ export default function Searchbar({
 	size,
 	placeholder = "Rechercher",
 	...props
-}: SearchbarProps & Omit<InputHTMLAttributes<HTMLInputElement>, keyof SearchbarProps | "className">) {
+}: SearchbarProps & InputHTMLAttributes<HTMLInputElement>) {
 	return (
 		<label className={cn(searchbarContainerVariants({ variant, size }))} aria-label="Rechercher">
 			<svg

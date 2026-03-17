@@ -7,7 +7,7 @@ import { cn } from "../../lib/utils";
 // ── Sidebar nav ──────────────────────────────────────────────────────────────
 
 const sidebarItemVariants = cva(
-  "flex w-full items-center gap-4 rounded-[20px] px-6 py-4 text-secondary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
+  "flex w-full items-center gap-4 rounded-xl px-6 py-4 text-secondary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
   {
     variants: {
       active: {
@@ -216,7 +216,8 @@ export default function Utilisateurs() {
 
           {/* Avatar */}
           <div className="mb-8 lg:mb-10">
-            <div className="flex h-[90px] w-[90px] items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10 lg:h-[140px] lg:w-[140px]">
+            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10 lg:h-36 lg:w-36">
+
               <AvatarIcon />
             </div>
           </div>

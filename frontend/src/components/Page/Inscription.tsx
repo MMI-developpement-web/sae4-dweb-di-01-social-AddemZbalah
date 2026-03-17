@@ -19,10 +19,32 @@ export default function Inscription() {
 
   const isFormValid = username && email && password && hasMinLength && hasDigit && hasMixedCase && hasSpecialChar;
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (isFormValid) {
-      console.log("Inscription avec:", { username, email, password });
+      try {
+        const response = await fetch("http://localhost:8080/api/register", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ username, email, password }),
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          console.log("Inscription réussie:", data);
+          // Rediriger vers la connexion après succès
+          navigate("/connexion");
+        } else {
+          const errorData = await response.json();
+          console.error("Erreur d'inscription:", errorData);
+          alert("Erreur lors de l'inscription : " + JSON.stringify(errorData));
+        }
+      } catch (error) {
+        console.error("Erreur réseau:", error);
+        alert("Erreur réseau lors de la tentative d'inscription.");
+      }
     }
   };
 

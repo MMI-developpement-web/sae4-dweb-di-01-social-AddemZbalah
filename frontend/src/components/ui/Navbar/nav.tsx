@@ -26,20 +26,13 @@ const navContainerVariants = cva(
 				embedded: "",
 				overlay: "shadow-2xl",
 			},
-			/**
-			 * position:
-			 *   drawer  — fixed sur mobile, devient static à lg (responsive)
-			 *   static  — toujours en flux (hors-page, tests, etc.)
-			 */
+			
 			position: {
 				drawer:
 					"fixed inset-y-0 left-0 z-40 transition-transform duration-300 ease-out lg:static lg:inset-y-auto lg:z-auto lg:translate-x-0 lg:shadow-none lg:transition-none",
 				static: "static",
 			},
-			/**
-			 * drawerState: contrôle l'animation du drawer mobile.
-			 * Ignoré quand position="static".
-			 */
+	
 			drawerState: {
 				open: "translate-x-0 shadow-2xl",
 				closed: "-translate-x-full",

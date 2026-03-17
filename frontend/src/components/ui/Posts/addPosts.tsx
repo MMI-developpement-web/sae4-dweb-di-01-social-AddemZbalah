@@ -1,9 +1,9 @@
 import { useEffect, useId, useMemo, useState, type ChangeEvent } from "react";
 import ConnexionBtn from "../Connexion-Inscription/Connexion-Inscription_Btn";
 
-type AddPostsProps = {
+interface AddPostsProps {
 	onMediaChange?: (file: File | null) => void;
-};
+}
 
 export default function AddPosts({ onMediaChange }: AddPostsProps) {
 	const inputId = useId();

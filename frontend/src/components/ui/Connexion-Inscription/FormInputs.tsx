@@ -34,7 +34,7 @@ export default function InputLogin({
   type = "text",
   placeholder,
   ...props
-}: InputLoginProps & Omit<InputHTMLAttributes<HTMLInputElement>, keyof InputLoginProps>) {
+}: InputLoginProps & InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       type={type}

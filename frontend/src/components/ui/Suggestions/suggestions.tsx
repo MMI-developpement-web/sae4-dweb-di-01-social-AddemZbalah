@@ -5,7 +5,7 @@ import ConnexionBtn from "../Connexion-Inscription/Connexion-Inscription_Btn";
 const FALLBACK_AVATAR = "https://www.figma.com/api/mcp/asset/db2a1971-280d-4846-b397-f3d516d1f6a4";
 
 const suggestionsCardVariants = cva(
-	"flex w-full flex-col rounded-[17px] border px-6 py-5",
+	"flex w-full flex-col rounded-lg border px-6 py-5",
 	{
 		variants: {
 			size: {
@@ -110,7 +110,7 @@ export default function Suggestions({
 								className="h-14 w-14 shrink-0 rounded-full object-cover"
 							/>
 							<div className="min-w-0">
-								<p className="truncate text-[18px] font-semibold leading-[1.2] text-secondary">
+								<p className="truncate text-lg font-semibold leading-tight text-secondary">
 									{user.name}
 								</p>
 								<p className="truncate text-base text-secondary/60">@{user.handle}</p>

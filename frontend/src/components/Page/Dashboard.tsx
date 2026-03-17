@@ -8,7 +8,7 @@ import DashboardDetails from "../ui/Dashboard/dashboardDetails";
 // ── Sidebar nav ──────────────────────────────────────────────────────────────
 
 const sidebarItemVariants = cva(
-  "flex w-full items-center gap-4 rounded-[20px] px-6 py-4 text-secondary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
+  "flex w-full items-center gap-4 rounded-xl px-6 py-4 text-secondary transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
   {
     variants: {
       active: {
@@ -172,7 +172,6 @@ export default function Dashboard() {
             />
           </header>
 
-          {/* Stat cards */}
           <section
             className="grid grid-cols-1 gap-5 lg:gap-6 lg:grid-cols-3"
             aria-label="Statistiques"
@@ -192,7 +191,7 @@ export default function Dashboard() {
   );
 }
 
-// ── Icons ────────────────────────────────────────────────────────────────────
+
 
 function DashboardIcon() {
   return (

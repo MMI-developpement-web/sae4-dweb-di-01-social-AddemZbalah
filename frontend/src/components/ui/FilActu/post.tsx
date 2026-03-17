@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { cn } from "../../../lib/utils";
 
-// SVG Icons as components
+
 const MessageCircleIcon = () => (
   <svg
     className="size-full"
@@ -58,7 +58,7 @@ const ShareIcon = () => (
   </svg>
 );
 
-// Action button component
+
 const actionButtonVariants = cva(
   "inline-flex items-center gap-2 px-0 py-0 text-secondary/60 transition-all duration-200 hover:text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-1 focus-visible:ring-offset-page-dark",
   {
@@ -87,7 +87,7 @@ function ActionButton({
   ariaLabel,
   size,
   ...props
-}: ActionButtonProps & Omit<ButtonHTMLAttributes<HTMLButtonElement>, "className">) {
+}: ActionButtonProps & ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
     <button
       className={cn(actionButtonVariants({ size }))}
@@ -102,7 +102,6 @@ function ActionButton({
   );
 }
 
-// Post content variants
 const postContentVariants = cva(
   "text-secondary/90 leading-tight",
   {
@@ -173,8 +172,8 @@ const authorMetaVariants = cva("text-secondary/70", {
 const timestampVariants = cva("text-secondary/60", {
   variants: {
     size: {
-      sm: "text-[0.52rem]",
-      md: "text-[0.6rem]",
+      sm: "text-xs",
+      md: "text-xs",
     },
   },
   defaultVariants: {
@@ -185,8 +184,8 @@ const timestampVariants = cva("text-secondary/60", {
 const separatorVariants = cva("text-secondary/40", {
   variants: {
     size: {
-      sm: "text-[0.52rem]",
-      md: "text-[0.6rem]",
+      sm: "text-xs",
+      md: "text-xs",
     },
   },
   defaultVariants: {
@@ -211,7 +210,6 @@ const moreActionsButtonVariants = cva(
 
 const actionsGroupVariants = cva("flex items-center justify-between gap-1 pt-1");
 
-// Main Post Component
 interface PostProps {
   authorName: string;
   authorHandle: string;
@@ -243,9 +241,7 @@ export default function Post({
 }: PostProps) {
   return (
     <article className={cn(postVariants({ density: "comfy" }))}>
-      {/* Header: Author info */}
       <header className={cn(postHeaderVariants())}>
-        {/* Avatar */}
         <figure className="flex-shrink-0">
           <img
             src={authorAvatar}
@@ -254,7 +250,6 @@ export default function Post({
           />
         </figure>
 
-        {/* Author metadata */}
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-1.5">
             <p className={cn(authorNameVariants({ size: "sm" }))}>
@@ -268,7 +263,6 @@ export default function Post({
           </div>
         </div>
 
-        {/* More actions button */}
         {onMoreActions && (
           <button
             onClick={onMoreActions}
@@ -288,12 +282,11 @@ export default function Post({
         )}
       </header>
 
-      {/* Post content */}
       <section className={cn(postContentVariants({ size: "md" }))}>
         {content}
       </section>
 
-      {/* Action buttons */}
+    
       <section
         className={cn(actionsGroupVariants())}
         role="group"

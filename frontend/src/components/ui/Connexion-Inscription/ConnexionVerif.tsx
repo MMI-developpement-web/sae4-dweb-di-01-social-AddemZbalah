@@ -43,7 +43,7 @@ export default function ConnexionVerif({
           aria-hidden="true"
         />
       </div>
-      <p className="text-[0.75rem] font-semibold leading-tight text-secondary whitespace-nowrap">
+      <p className="text-xs font-semibold leading-tight text-secondary whitespace-nowrap">
         {children}
       </p>
     </div>

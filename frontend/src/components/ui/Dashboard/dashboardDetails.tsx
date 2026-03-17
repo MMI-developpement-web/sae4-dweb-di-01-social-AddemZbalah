@@ -2,30 +2,28 @@ import type { ReactNode } from "react";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../../lib/utils";
 
-// ── Card container ──────────────────────────────────────────────────────────
 
 const statCardVariants = cva(
-  "flex flex-col rounded-[22px] border border-primary/20 bg-page-dark",
+  "flex flex-col rounded-3xl border border-primary/20 bg-page-dark",
   {
     variants: {
       size: {
         sm: "gap-3 px-6 py-4",
-        md: "gap-[17px] px-9 py-5",
+        md: "gap-4 px-8 py-5",
       },
     },
     defaultVariants: { size: "md" },
   }
 );
 
-// ── Icon container ───────────────────────────────────────────────────────────
 
 const iconContainerVariants = cva(
-  "flex shrink-0 items-center justify-center rounded-[20px] bg-primary/10",
+  "flex shrink-0 items-center justify-center rounded-xl bg-primary/10",
   {
     variants: {
       size: {
         sm: "h-14 w-14",
-        md: "h-[67px] w-[67px]",
+        md: "h-16 w-16",
       },
     },
     defaultVariants: { size: "md" },
@@ -42,13 +40,12 @@ const iconWrapperVariants = cva("text-primary", {
   defaultVariants: { size: "md" },
 });
 
-// ── Label & value ────────────────────────────────────────────────────────────
 
 const labelVariants = cva("font-medium leading-snug text-secondary/70", {
   variants: {
     size: {
       sm: "text-base",
-      md: "text-[19px]",
+      md: "text-base",
     },
   },
   defaultVariants: { size: "md" },
@@ -58,13 +55,12 @@ const valueVariants = cva("font-semibold leading-none text-secondary", {
   variants: {
     size: {
       sm: "text-3xl",
-      md: "text-[42px]",
+      md: "text-4xl",
     },
   },
   defaultVariants: { size: "md" },
 });
 
-// ── Component ────────────────────────────────────────────────────────────────
 
 interface StatCardProps extends VariantProps<typeof statCardVariants> {
   icon?: ReactNode;
@@ -80,23 +76,19 @@ export default function DashboardDetails({
 }: StatCardProps) {
   return (
     <article className={cn(statCardVariants({ size }))}>
-      {/* Icon */}
       <div className={cn(iconContainerVariants({ size }))}>
         <div className={cn(iconWrapperVariants({ size }))} aria-hidden="true">
           {icon}
         </div>
       </div>
 
-      {/* Label */}
       <p className={cn(labelVariants({ size }))}>{label}</p>
 
-      {/* Value */}
       <p className={cn(valueVariants({ size }))}>{value}</p>
     </article>
   );
 }
 
-// ── Default icon — same "users" shape as in Figma ────────────────────────────
 
 function DefaultUsersIcon() {
   return (
