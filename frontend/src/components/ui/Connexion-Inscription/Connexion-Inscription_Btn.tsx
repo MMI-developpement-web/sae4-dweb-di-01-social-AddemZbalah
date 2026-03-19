@@ -35,10 +35,11 @@ export default function ConnexionBtn({
   children,
   variant,
   size,
+  className,
   ...props
 }: ConnexionBtnProps & React.ButtonHTMLAttributes<HTMLButtonElement>) {
   return (
-    <button className={cn(buttonLoginVariants({ variant, size }))} {...props}>
+    <button className={cn(buttonLoginVariants({ variant, size }), className)} {...props}>
       {children}
     </button>
   );

@@ -13,9 +13,49 @@ export default function Addposts() {
     [content.length],
   );
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     console.log("Nouveau post", { content, mediaFile });
+
+    // 1. Vérification côté frontend : empêcher d'envoyer un post vide
+    if (!content.trim()) {
+      alert("Votre post ne peut pas être vide !");
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+
+      const response = await fetch("http://localhost:8080/api/posts", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json", // Force Symfony à renvoyer du JSON, même pour les erreurs
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({ content: content }) 
+        // Note: l'image (mediaFile) n'est pas envoyée ici pour l'instant !
+      });
+
+      if (response.ok) {
+        window.location.href = "/";
+      } else {
+        // En cas d'erreur de token ou de validation
+        let errorMessage = "Une erreur est survenue lors de la publication.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch (e) {
+          if (response.status === 401) {
+            errorMessage = "Vous devez être connecté (Token invalide ou manquant) !";
+          }
+        }
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      alert("Problème réseau : Le serveur backend n'est peut-être pas lancé ou refuse la connexion (CORS).");
+    }
   };
 
   return (
@@ -53,9 +93,11 @@ export default function Addposts() {
 
           <AddPosts onMediaChange={setMediaFile} />
 
-          <ConnexionBtn type="submit" variant="lavender" size="lg" className="w-full text-xl">
-            Publier
-          </ConnexionBtn>
+          <div className="flex justify-center">
+            <ConnexionBtn type="submit" variant="lavender" size="lg" className="w-full max-w-[461px] text-[17px]">
+              Publier
+            </ConnexionBtn>
+          </div>
         </form>
       </article>
     </main>

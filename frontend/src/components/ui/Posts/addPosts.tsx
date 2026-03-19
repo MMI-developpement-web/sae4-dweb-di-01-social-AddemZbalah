@@ -81,7 +81,7 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 					<ConnexionBtn
 						type="button"
 						size="sm"
-						variant="secondary"
+						variant="primary"
 						onClick={handleRemoveMedia}
 					>
 						Retirer le media

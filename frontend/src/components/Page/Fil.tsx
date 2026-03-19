@@ -4,78 +4,6 @@ import Nav from "../ui/Navbar/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
 import Searchbar from "../ui/Searchbar/searchbar";
 
-const FEED_POSTS = [
-  {
-    id: 1,
-    authorName: "James Harden",
-    authorHandle: "jamesharden01",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
-    timestamp: "il y a 1 jour",
-    content: "Magnifique journee aujourd'hui pour coder en plein air",
-    commentCount: 40,
-    shareCount: 932,
-    likeCount: 121,
-    image: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=400&h=300&fit=crop",
-  },
-  {
-    id: 2,
-    authorName: "Alex Chen",
-    authorHandle: "alexc_dev",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-    timestamp: "il y a environ 17 heures",
-    content:
-      "Je viens de tester le nouveau framework React ! C'est vraiment incroyable a quel point ca simplifie le developpement front-end. Qu'en pensez-vous ?",
-    commentCount: 32,
-    shareCount: 957,
-    likeCount: 1794,
-  },
-  {
-    id: 3,
-    authorName: "Marie Dubois",
-    authorHandle: "marie_dldsq",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Marie",
-    timestamp: "il y a 2 jours",
-    content: "Magnifique journee aujourd'hui pour coder en plein air",
-    commentCount: 14,
-    shareCount: 235,
-    likeCount: 617,
-  },
-  {
-    id: 4,
-    authorName: "James Harden",
-    authorHandle: "jamesharden01",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
-    timestamp: "il y a environ 10 heures",
-    content: "Magnifique journee aujourd'hui pour coder en plein air",
-    commentCount: 43,
-    shareCount: 711,
-    likeCount: 2671,
-  },
-  {
-    id: 5,
-    authorName: "James Harden",
-    authorHandle: "jamesharden01",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=James",
-    timestamp: "il y a 2 jours",
-    content:
-      "Je viens de tester le nouveau framework React ! C'est vraiment incroyable a quel point ca simplifie le developpement front-end. Qu'en pensez-vous ?",
-    commentCount: 23,
-    shareCount: 615,
-    likeCount: 4930,
-  },
-  {
-    id: 6,
-    authorName: "Alex Chen",
-    authorHandle: "alexc_dev",
-    authorAvatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Alex",
-    timestamp: "il y a 1 jour",
-    content:
-      "Un petit rappel de l'importance du design system : il permet une coherence visuelle et fonctionnelle a travers toutes les interfaces.",
-    commentCount: 18,
-    shareCount: 402,
-    likeCount: 856,
-  },
-];
 
 const SUGGESTED_USERS: SuggestionUser[] = [
   {
@@ -96,7 +24,34 @@ const SUGGESTED_USERS: SuggestionUser[] = [
 
 export default function Fil() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [posts, setPosts] = useState<any[]>([]); // Nouvel état pour les posts du backend
   const navId = useId();
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const token = localStorage.getItem("token");
+        const response = await fetch("http://localhost:8080/api/posts", {
+          headers: {
+            "Accept": "application/json",
+            ...(token ? { "Authorization": `Bearer ${token}` } : {})
+          }
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          // L'API renvoie { posts: [...], pagination: {...} }
+          setPosts(data.posts || []);
+        } else {
+          console.error("Erreur lors de la récupération des posts", response.status);
+        }
+      } catch (error) {
+        console.error("Erreur réseau :", error);
+      }
+    };
+
+    fetchPosts();
+  }, []);
 
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -183,26 +138,30 @@ export default function Fil() {
           className="flex w-[90vw] max-w-xl shrink-0 flex-col overflow-y-auto scrollbar-hide mt-24 border-x border-t border-primary/20 lg:mt-0 lg:w-[52rem] lg:max-w-none lg:border-t-0"
           aria-label="Posts"
         >
-          {/* Liste des posts */}
+          {/* Liste des posts provenant de l'API */}
           <ul className="flex flex-col" role="list">
-            {FEED_POSTS.map((post) => (
-              <li key={post.id} className="list-none border-b border-primary/20">
-                <Post
-                  authorName={post.authorName}
-                  authorHandle={post.authorHandle}
-                  authorAvatar={post.authorAvatar}
-                  timestamp={post.timestamp}
-                  content={post.content}
-                  commentCount={post.commentCount}
-                  shareCount={post.shareCount}
-                  likeCount={post.likeCount}
-                  onComment={() => handlePostAction(post.id, "comment")}
-                  onShare={() => handlePostAction(post.id, "share")}
-                  onLike={() => handlePostAction(post.id, "like")}
-                  onMoreActions={() => handlePostAction(post.id, "more")}
-                />
-              </li>
-            ))}
+            {posts.length > 0 ? (
+              posts.map((post) => (
+                <li key={post.id} className="list-none border-b border-primary/20">
+                  <Post
+                    authorName={post.author?.name || "Utilisateur"}
+                    authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
+                    authorAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
+                    timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
+                    content={post.content || ""}
+                    commentCount={0} // À implémenter plus tard côté backend
+                    shareCount={0}
+                    likeCount={0}
+                    onComment={() => handlePostAction(post.id, "comment")}
+                    onShare={() => handlePostAction(post.id, "share")}
+                    onLike={() => handlePostAction(post.id, "like")}
+                    onMoreActions={() => handlePostAction(post.id, "more")}
+                  />
+                </li>
+              ))
+            ) : (
+              <p className="p-8 text-center text-secondary/70">Aucun post disponible. Soyez le premier à publier !</p>
+            )}
           </ul>
 
           <footer className="border-t border-primary/20 px-4 py-6 text-center">

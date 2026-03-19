@@ -26,6 +26,11 @@ class Token
     #[ORM\JoinColumn(nullable: false)]
     private ?User $user_id = null;
 
+    public function __toString(): string
+    {
+        return $this->value ?? 'Token #'.$this->id;
+    }
+
     public function getId(): ?int
     {
         return $this->id;

@@ -12,6 +12,14 @@ class TokenManager
 
     public function generateForUser(User $user): string
     {
+        // Supprimer directement les anciens tokens via SQL pour éviter les conflits
+        // La colonne dans la BDD s'appelle user_id_id car la propriété dans l'entité Token est $user_id
+        $connection = $this->em->getConnection();
+        $connection->executeStatement(
+            'DELETE FROM token WHERE user_id_id = ?',
+            [$user->getId()]
+        );
+
         $tokenValue = bin2hex(random_bytes(32)); // Token sécurisé de 64 caractères
         
         $token = new Token();

@@ -10,18 +10,41 @@ security:
                 class: App\Entity\User
                 property: mail
 
+    role_hierarchy:
+        ROLE_ADMIN: ROLE_USER
+
     firewalls:
         dev:
             # Ensure dev tools and static assets are always allowed
             pattern: ^/(_profiler|_wdt|assets|build)/
             security: false
+        
+        admin:
+            pattern: ^/admin
+            provider: app_user_provider
+            lazy: true
+            form_login:
+                login_path: admin_login
+                check_path: admin_login
+                default_target_path: admin
+                enable_csrf: false
+                username_parameter: _username
+                password_parameter: _password
+            logout:
+                path: admin_logout
+                target: admin_login
+
         main:
             lazy: true
             provider: app_user_provider
             stateless: true
+            access_token:
+                token_handler: App\Security\ApiTokenHandler
 
     # Note: Only the *first* matching rule is applied
     access_control:
+        - { path: ^/admin/login, roles: PUBLIC_ACCESS }
+        - { path: ^/admin, roles: ROLE_ADMIN }
         - { path: ^/api/login$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/register$, roles: PUBLIC_ACCESS, methods: [POST] }
         - { path: ^/api/users$, roles: PUBLIC_ACCESS, methods: [GET] }

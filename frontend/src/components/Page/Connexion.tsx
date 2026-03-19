@@ -8,9 +8,43 @@ export default function Connexion() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log("Connexion avec:", { email, password });
+    
+    try {
+      const response = await fetch("http://localhost:8080/api/login", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json"
+        },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token) {
+          // Sauvegarde du token pour l'utiliser lors des requêtes à l'API
+          localStorage.setItem("token", data.token);
+          // Redirection vers le fil d'actualité
+          navigate("/");
+        } else {
+          alert("Erreur: Aucun token reçu du serveur.");
+        }
+      } else {
+        let errorMessage = "Identifiants invalides.";
+        try {
+          const errorData = await response.json();
+          errorMessage = errorData.error || errorMessage;
+        } catch {
+          // Fallback if no json
+        }
+        alert(errorMessage);
+      }
+    } catch (error) {
+      console.error("Erreur réseau :", error);
+      alert("Problème de connexion avec le serveur backend.");
+    }
   };
 
   const handleForgotPassword = () => {
