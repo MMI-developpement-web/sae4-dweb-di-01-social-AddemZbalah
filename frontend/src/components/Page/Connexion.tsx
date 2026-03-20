@@ -46,7 +46,7 @@ export default function Connexion() {
               <InputLogin
                 variant="dark"
                 size="lg"
-                type="email"
+                type="text"
                 placeholder="Adresse e-mail"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
