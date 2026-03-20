@@ -2,6 +2,7 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import InputLogin from "../ui/Connexion-Inscription/FormInputs";
+import { login } from "../../lib/api";
 
 export default function Connexion() {
   const [email, setEmail] = useState("");
@@ -11,39 +12,11 @@ export default function Connexion() {
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     
-    try {
-      const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json"
-        },
-        body: JSON.stringify({ email, password }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        if (data.token) {
-          // Sauvegarde du token pour l'utiliser lors des requêtes à l'API
-          localStorage.setItem("token", data.token);
-          // Redirection vers le fil d'actualité
-          navigate("/");
-        } else {
-          alert("Erreur: Aucun token reçu du serveur.");
-        }
-      } else {
-        let errorMessage = "Identifiants invalides.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch {
-          // Fallback if no json
-        }
-        alert(errorMessage);
-      }
-    } catch (error) {
-      console.error("Erreur réseau :", error);
-      alert("Problème de connexion avec le serveur backend.");
+    const result = await login(email, password);
+    if (result && result.token) {
+        navigate("/");
+    } else {
+        alert("Identifiants invalides ou problème de connexion.");
     }
   };
 

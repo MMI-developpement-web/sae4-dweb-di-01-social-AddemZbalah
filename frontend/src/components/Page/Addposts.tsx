@@ -1,12 +1,15 @@
 import { useMemo, useState, type FormEvent } from "react";
+import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import AddPosts from "../ui/Posts/addPosts";
+import { createPost } from "../../lib/api";
 
 const MAX_POST_LENGTH = 200;
 
 export default function Addposts() {
   const [content, setContent] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const navigate = useNavigate();
 
   const remainingCharacters = useMemo(
     () => MAX_POST_LENGTH - content.length,
@@ -24,37 +27,11 @@ export default function Addposts() {
     }
 
     try {
-      const token = localStorage.getItem("token");
-
-      const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/posts", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Accept": "application/json", // Force Symfony à renvoyer du JSON, même pour les erreurs
-          ...(token ? { "Authorization": `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ content: content }) 
-        // Note: l'image (mediaFile) n'est pas envoyée ici pour l'instant !
-      });
-
-      if (response.ok) {
-        window.location.href = "/";
-      } else {
-        // En cas d'erreur de token ou de validation
-        let errorMessage = "Une erreur est survenue lors de la publication.";
-        try {
-          const errorData = await response.json();
-          errorMessage = errorData.error || errorMessage;
-        } catch (e) {
-          if (response.status === 401) {
-            errorMessage = "Vous devez être connecté (Token invalide ou manquant) !";
-          }
-        }
-        alert(errorMessage);
-      }
-    } catch (error) {
+      await createPost(content);
+      navigate("/");
+    } catch (error: any) {
       console.error("Erreur réseau :", error);
-      alert("Problème réseau : Le serveur backend n'est peut-être pas lancé ou refuse la connexion (CORS).");
+      alert(error.message || "Problème de connexion avec le serveur backend.");
     }
   };
 
