@@ -12,7 +12,7 @@ export default function Connexion() {
     e.preventDefault();
     
     try {
-      const response = await fetch("http://localhost:8080/api/login", {
+      const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/login", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

@@ -31,7 +31,7 @@ export default function Fil() {
     const fetchPosts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("http://localhost:8080/api/posts", {
+        const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/posts", {
           headers: {
             "Accept": "application/json",
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
