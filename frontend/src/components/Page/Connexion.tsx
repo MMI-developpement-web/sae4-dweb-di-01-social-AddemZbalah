@@ -11,9 +11,13 @@ export default function Connexion() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    console.log('Form submitted with email:', email);
     
     const result = await login(email, password);
+    console.log('Login result:', result);
+    
     if (result && result.token) {
+        console.log('Login successful, redirecting to home');
         navigate("/");
     } else {
         alert("Identifiants invalides ou problème de connexion.");

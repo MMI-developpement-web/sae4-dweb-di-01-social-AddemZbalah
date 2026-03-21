@@ -37,13 +37,23 @@ export interface Post {
 // Auth
 export async function login(email: string, password: string): Promise<{ token: string } | null> {
   try {
+    console.log('Attempt login with email:', email);
     const res = await fetch(`${API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
-    if (!res.ok) throw new Error('Login failed');
+    
+    console.log('Login response status:', res.status, res.ok);
+    
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      console.error('Login failed:', res.status, errorData);
+      throw new Error(`Login failed: ${res.status}`);
+    }
+    
     const data = await res.json();
+    console.log('Login response data:', data);
     
     // Store token in localStorage for API requests (your code uses "token", not "authToken")
     if (data.token) {
@@ -51,6 +61,7 @@ export async function login(email: string, password: string): Promise<{ token: s
       return data;
     }
     
+    console.warn('Login response missing token:', data);
     return null;
   } catch (err) {
     console.error('Login error:', err);

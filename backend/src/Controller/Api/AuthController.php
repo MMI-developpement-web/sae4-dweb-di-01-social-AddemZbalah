@@ -22,6 +22,7 @@ class AuthController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $email = $data['email'] ?? $data['mail'] ?? '';
         $user = $userRepository->findOneBy(['mail' => $email]);
+        if (!$user) $user = $userRepository->findOneBy(['name' => $email]); if (!$user) { $user = $userRepository->findOneBy(['name' => $email]); }
 
         if (!$user || !$hasher->isPasswordValid($user, $data['password'])) {
             return $this->json(['error' => 'Identifiants invalides'], 401);
@@ -31,4 +32,30 @@ class AuthController extends AbstractController
 
         return $this->json(['token' => $token]);
     }
+
+    #[Route('/api/user', name: 'api_user', methods: ['GET'])]
+    public function user(Request $request, \App\Repository\TokenRepository $tokenRepository): JsonResponse
+    {
+        $authorizationHeader = $request->headers->get('Authorization');
+        if (!$authorizationHeader || !preg_match('/Bearer\s+(.*)$/i', $authorizationHeader, $matches)) {
+            return $this->json(['error' => 'Non autorisé'], 401);
+        }
+
+        $tokenValue = $matches[1];
+        $token = $tokenRepository->findOneBy(['value' => $tokenValue]);
+
+        if (!$token || $token->getExpiresAt() < new \DateTime()) {
+            return $this->json(['error' => 'Token invalide ou expiré'], 401);
+        }
+
+        $user = $token->getUserId();
+
+        return $this->json([
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'firstname' => $user->getFirstname(),
+            'mail' => $user->getMail(),
+        ]);
+    }
 }
+use Doctrine\ORM\EntityManagerInterface;
