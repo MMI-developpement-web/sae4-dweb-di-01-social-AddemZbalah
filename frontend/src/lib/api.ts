@@ -1,5 +1,8 @@
 // API utility for calling backend endpoints
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+const API_BASE = import.meta.env.VITE_API_URL || (isLocal 
+  ? 'http://localhost:8080/api' 
+  : 'https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/index.php/api');
 
 export interface User {
   id: number;
