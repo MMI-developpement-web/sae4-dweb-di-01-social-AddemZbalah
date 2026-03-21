@@ -65,6 +65,10 @@ export async function login(email: string, password: string): Promise<{ token: s
     return null;
   } catch (err) {
     console.error('Login error:', err);
+    if (err instanceof Error) {
+      console.error('Error message:', err.message);
+      console.error('Error stack:', err.stack);
+    }
     return null;
   }
 }
