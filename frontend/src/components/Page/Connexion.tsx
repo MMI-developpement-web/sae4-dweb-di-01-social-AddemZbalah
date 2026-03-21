@@ -17,8 +17,8 @@ export default function Connexion() {
     console.log('Login result:', result);
     
     if (result && result.token) {
-        console.log('Login successful, redirecting to home');
-        navigate("/");
+        console.log('Login successful, redirecting to fil');
+        navigate("/fil");
     } else {
         alert("Identifiants invalides ou problème de connexion.");
     }
