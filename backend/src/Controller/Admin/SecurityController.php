@@ -25,7 +25,7 @@ class SecurityController extends AbstractController
             'translation_domain' => 'admin',
             'page_title' => 'Admin Login',
             'csrf_token_intention' => 'authenticate',
-            'target_path' => $this->generateUrl('admin'),
+            // 'target_path' => $this->generateUrl('admin'), // Commented to fix duplicated base URL issue
             'username_label' => 'Adresse email',
             'password_label' => 'Mot de passe',
             'sign_in_label' => 'Se connecter',
