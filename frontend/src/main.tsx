@@ -20,7 +20,7 @@ const router = createBrowserRouter([
     children: [
       {
         index: true,
-        element: <Navigate to="/fil" replace />,
+        element: <Navigate to="/connexion" replace />,
       },
       {
         path: 'connexion',
