@@ -28,7 +28,7 @@ export default function Addposts() {
 
     try {
       await createPost(content);
-      navigate("/");
+      navigate("/fil");
     } catch (error: any) {
       console.error("Erreur réseau :", error);
       alert(error.message || "Problème de connexion avec le serveur backend.");
