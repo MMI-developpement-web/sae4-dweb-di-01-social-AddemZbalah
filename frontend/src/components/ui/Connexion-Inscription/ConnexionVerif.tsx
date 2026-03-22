@@ -26,7 +26,7 @@ interface ConnexionVerifProps extends VariantProps<typeof verificationItemVarian
 export default function ConnexionVerif({
   children,
   status,
-  icon = "/assets/Check circle.svg",
+  icon = `${import.meta.env.BASE_URL}assets/Check circle.svg`,
   ariaLabel,
 }: ConnexionVerifProps) {
   return (

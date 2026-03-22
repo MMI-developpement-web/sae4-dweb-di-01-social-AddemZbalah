@@ -80,7 +80,7 @@ export default function Nav({ id, onNavigate, mode, position, drawerState }: Nav
 		<aside id={id} className={cn(navContainerVariants({ mode, position, drawerState }))}>
 			<header className={cn(navHeaderVariants())}>
 				<img
-					src="/assets/image 5 (1).png"
+					src={`${import.meta.env.BASE_URL}assets/image 5 (1).png`}
 					alt="Logo Zbalah"
 					className={cn(navLogoVariants())}
 				/>
