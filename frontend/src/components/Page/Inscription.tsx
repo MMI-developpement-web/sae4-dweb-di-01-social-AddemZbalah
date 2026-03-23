@@ -23,7 +23,12 @@ export default function Inscription() {
     e.preventDefault();
     if (isFormValid) {
       try {
-        const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/register", {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = import.meta.env.VITE_API_URL || (isLocal 
+          ? `http://${window.location.hostname}:8080/api` 
+          : 'https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/index.php/api');
+
+        const response = await fetch(`${API_BASE}/register`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

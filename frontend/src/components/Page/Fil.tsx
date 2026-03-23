@@ -31,7 +31,12 @@ export default function Fil() {
     const fetchPosts = async () => {
       try {
         const token = localStorage.getItem("token");
-        const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/posts", {
+        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
+        const API_BASE = import.meta.env.VITE_API_URL || (isLocal 
+          ? `http://${window.location.hostname}:8080/api` 
+          : 'https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/index.php/api');
+          
+        const response = await fetch(`${API_BASE}/posts`, {
           headers: {
             "Accept": "application/json",
             ...(token ? { "Authorization": `Bearer ${token}` } : {})
