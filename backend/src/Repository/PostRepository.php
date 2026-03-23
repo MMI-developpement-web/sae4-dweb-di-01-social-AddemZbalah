@@ -19,15 +19,19 @@ class PostRepository extends ServiceEntityRepository
     /**
      * @return Post[] Returns an array of Post objects
      */
-    public function findLatest(int $limit, int $offset): array
+    public function findLatest(int $limit, int $offset, ?int $authorId = null): array
     {
-        return $this->createQueryBuilder('p')
+        $qb = $this->createQueryBuilder('p')
             ->orderBy('p.createdAt', 'DESC')
             ->setMaxResults($limit)
-            ->setFirstResult($offset)
-            ->getQuery()
-            ->getResult()
-        ;
+            ->setFirstResult($offset);
+
+        if ($authorId !== null) {
+            $qb->andWhere('p.author = :authorId')
+               ->setParameter('authorId', $authorId);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
 //    /**

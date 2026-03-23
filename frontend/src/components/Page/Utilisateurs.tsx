@@ -234,7 +234,7 @@ export default function Utilisateurs() {
                 <span className="text-base font-semibold text-secondary whitespace-nowrap lg:text-xl">
                   Mot de passe :
                 </span>
-                <span className="text-base font-semibold text-secondary tracking-[0.3em] lg:text-xl">
+                <span className="text-base font-semibold text-secondary tracking-widest lg:text-xl">
                   ●●●●●●●
                 </span>
               </div>

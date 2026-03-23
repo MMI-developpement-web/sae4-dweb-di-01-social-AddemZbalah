@@ -156,7 +156,7 @@ export default function Dashboard() {
         >
           {/* Page heading */}
           <header className="mb-8 flex items-start justify-between lg:mb-11">
-            <div className="flex flex-col gap-2">
+            <hgroup className="flex flex-col gap-2">
               <h1 className="text-4xl font-semibold text-secondary lg:text-5xl">
                 Tableau de{" "}
                 <span className="text-primary">bord</span>
@@ -164,7 +164,7 @@ export default function Dashboard() {
               <p className="text-base text-secondary/60 lg:text-lg">
                 Vue d'ensemble de votre plateforme
               </p>
-            </div>
+            </hgroup>
             <img
               src={`${import.meta.env.BASE_URL}assets/image 5 (1).png`}
               alt="Logo Zbalah"

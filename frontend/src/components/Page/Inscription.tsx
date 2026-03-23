@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import InputLogin from "../ui/Connexion-Inscription/FormInputs";
 import ConnexionVerif from "../ui/Connexion-Inscription/ConnexionVerif";
+import { register } from "../../lib/api";
 
 export default function Inscription() {
   const [username, setUsername] = useState("");
@@ -23,28 +24,15 @@ export default function Inscription() {
     e.preventDefault();
     if (isFormValid) {
       try {
-        const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-        const API_BASE = import.meta.env.VITE_API_URL || (isLocal 
-          ? `http://${window.location.hostname}:8080/api` 
-          : 'https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/index.php/api');
+        const data = await register({ username, email, password });
 
-        const response = await fetch(`${API_BASE}/register`, {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ username, email, password }),
-        });
-
-        if (response.ok) {
-          const data = await response.json();
+        if (data && data.token) {
           console.log("Inscription réussie:", data);
           // Rediriger vers la connexion après succès
           navigate("/connexion");
         } else {
-          const errorData = await response.json();
-          console.error("Erreur d'inscription:", errorData);
-          alert("Erreur lors de l'inscription : " + JSON.stringify(errorData));
+          console.error("Erreur d'inscription:", data);
+          alert("Erreur lors de l'inscription. L'utilisateur existe peut-être déjà ?");
         }
       } catch (error) {
         console.error("Erreur réseau:", error);

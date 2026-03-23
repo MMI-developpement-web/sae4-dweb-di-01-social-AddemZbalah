@@ -11,6 +11,7 @@ import Home from './routes/home';
 import Dashboard from './routes/dashboard';
 import Utilisateurs from './routes/utilisateurs';
 import Settings from './routes/settings';
+import Profil from './routes/profil';
 import Root from './routes/root';
 
 const router = createBrowserRouter([
@@ -49,6 +50,10 @@ const router = createBrowserRouter([
       {
         path: 'add-post',
         element: <Addposts />,
+      },
+      {
+        path: 'profil',
+        element: <Profil />,
       },
       {
         path: 'settings',

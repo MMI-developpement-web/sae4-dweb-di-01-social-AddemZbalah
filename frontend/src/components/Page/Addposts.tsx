@@ -39,7 +39,7 @@ export default function Addposts() {
     <main className="flex min-h-screen items-start justify-center bg-connexion p-4 sm:p-8">
       <article className="w-full max-w-4xl rounded-3xl border border-secondary/30 bg-secondary/25 p-6 shadow-sm backdrop-blur-sm sm:p-8">
         <header className="flex items-center gap-3">
-          <p className="flex h-12 w-12 items-center justify-center rounded-full bg-gradient-to-b from-primary to-secondary text-xl font-semibold text-primary-foreground">
+          <p className="flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-b from-primary to-secondary text-xl font-semibold text-primary-foreground">
             U
           </p>
           <section aria-label="Informations utilisateur" className="leading-tight">
@@ -71,7 +71,7 @@ export default function Addposts() {
           <AddPosts onMediaChange={setMediaFile} />
 
           <div className="flex justify-center">
-            <ConnexionBtn type="submit" variant="lavender" size="lg" className="w-full max-w-[461px] text-[17px]">
+            <ConnexionBtn type="submit" variant="lavender" size="lg" className="w-full max-w-md text-base">
               Publier
             </ConnexionBtn>
           </div>

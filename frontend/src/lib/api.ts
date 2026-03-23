@@ -29,7 +29,7 @@ export interface Post {
   content: string;
   time?: string;
   createdAt: string;
-  user: {
+  author: {
     id: number;
     name: string;
     user: string;
@@ -123,9 +123,12 @@ export function logout(): void {
 }
 
 // Posts
-export async function getPosts(page: number = 1): Promise<any> {
+export async function getPosts(page: number = 1, authorId?: number): Promise<any> {
   try {
-    const res = await fetch(`${API_BASE}/posts?page=${page}`, {
+    const url = authorId 
+      ? `${API_BASE}/posts?page=${page}&author_id=${authorId}` 
+      : `${API_BASE}/posts?page=${page}`;
+    const res = await fetch(url, {
       headers: getAuthHeaders(),
     });
     if (!res.ok) throw new Error('Fetch posts failed');
@@ -133,6 +136,19 @@ export async function getPosts(page: number = 1): Promise<any> {
   } catch (err) {
     console.error('Get posts error:', err);
     return [];
+  }
+}
+
+export async function deletePost(postId: number): Promise<boolean> {
+  try {
+    const res = await fetch(`${API_BASE}/posts/${postId}`, {
+      method: 'DELETE',
+      headers: getAuthHeaders(),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error('Delete post error:', err);
+    return false;
   }
 }
 

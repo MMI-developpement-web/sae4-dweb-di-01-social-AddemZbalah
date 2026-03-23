@@ -26,7 +26,7 @@ class PostController extends AbstractController
 
     /**
      * List all posts in reverse chronological order (paginated)
-     * GET /api/posts?page=1&per_page=20
+     * GET /api/posts?page=1&per_page=20&author_id=1
      */
     #[Route('/posts', name: 'api.posts.all', methods: ['GET'])]
     public function all(Request $request): JsonResponse
@@ -34,9 +34,12 @@ class PostController extends AbstractController
         $page = max(1, (int) $request->query->get('page', 1));
         $perPage = min(50, max(1, (int) $request->query->get('per_page', 20)));
         $offset = ($page - 1) * $perPage;
+        
+        $authorId = $request->query->get('author_id');
+        $authorId = $authorId ? (int) $authorId : null;
 
-        $posts = $this->postRepository->findLatest($perPage, $offset);
-        $total = $this->postRepository->count([]);
+        $posts = $this->postRepository->findLatest($perPage, $offset, $authorId);
+        $total = $this->postRepository->count($authorId ? ['author' => $authorId] : []);
 
         return $this->json([
             'posts' => $posts,
@@ -46,6 +49,23 @@ class PostController extends AbstractController
                 'total_items' => $total,
             ],
         ], 200, [], ['groups' => 'default']);
+    }
+
+    /**
+     * Delete a post
+     * DELETE /api/posts/{id}
+     */
+    #[Route('/posts/{id}', name: 'api.posts.delete', methods: ['DELETE'])]
+    public function delete(Post $post): JsonResponse
+    {
+        if ($post->getAuthor() !== $this->getUser()) {
+            return $this->json(['error' => 'Unauthorized or you are not the author.'], 403);
+        }
+
+        $this->em->remove($post);
+        $this->em->flush();
+
+        return $this->json(null, 204);
     }
 
     /**

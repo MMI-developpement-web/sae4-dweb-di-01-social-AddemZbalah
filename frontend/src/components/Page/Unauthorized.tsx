@@ -36,10 +36,10 @@ export default function Unauthorized() {
         <div className="flex flex-col items-center max-w-3xl gap-12">
           
           <div className="space-y-4">
-            <h1 className="text-4xl md:text-5xl lg:text-[50px] font-semibold text-secondary leading-tight">
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-semibold text-secondary leading-tight">
               Bienvenue sur le panel <span className="text-primary">administrateur</span>.
             </h1>
-            <p className="text-3xl md:text-4xl lg:text-[40px] font-semibold text-secondary leading-tight mt-6">
+            <p className="text-3xl md:text-4xl lg:text-5xl font-semibold text-secondary leading-tight mt-6">
               Veuillez vous <span className="text-primary">connecter</span> pour accéder à cet espace.
             </p>
           </div>
@@ -55,7 +55,7 @@ export default function Unauthorized() {
       </section>
 
       {/* Image de décoration optionnelle si présente dans le dossier (remplacement basique de l'Image 5) */}
-      <div className="absolute top-1/4 right-0 lg:right-24 h-64 w-64 opacity-50 blur-[2px] pointer-events-none hidden md:block">
+      <div className="absolute top-1/4 right-0 lg:right-24 h-64 w-64 opacity-50 blur-sm pointer-events-none hidden md:block">
          <div className="w-full h-full bg-primary/20 rounded-full blur-3xl"></div>
       </div>
     </main>
