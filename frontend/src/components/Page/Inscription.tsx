@@ -12,6 +12,7 @@ export default function Inscription() {
 
   // Validation du username: seulement alphanumériques, underscores et tirets
   const isValidUsername = /^[a-zA-Z0-9_-]*$/.test(username);
+  const hasUsernameError = username && !isValidUsername;
 
   const hasMinLength = password.length >= 12;
   const hasDigit = /\d/.test(password);
@@ -24,12 +25,6 @@ export default function Inscription() {
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
-    // Validation du username
-    if (!isValidUsername) {
-      alert("Le nom d'utilisateur ne peut contenir que des lettres, chiffres, traits d'union et underscores.");
-      return;
-    }
     
     if (isFormValid) {
       try {
@@ -90,6 +85,14 @@ export default function Inscription() {
                 required
                 aria-label="Nom d'utilisateur"
               />
+              {hasUsernameError && (
+                <div className="flex items-start gap-2 rounded-lg bg-red-500/10 p-3 border border-red-500/30">
+                  <span className="text-red-500 font-bold text-lg mt-0.5">!</span>
+                  <p className="text-xs text-red-500 font-semibold leading-tight">
+                    Le nom d'utilisateur ne peut contenir que des lettres, chiffres, traits d'union (-) et underscores (_).
+                  </p>
+                </div>
+              )}
             </div>
 
             <div className="flex flex-col gap-2.5">
