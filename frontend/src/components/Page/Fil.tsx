@@ -233,6 +233,7 @@ export default function Fil() {
                   <Post
                     authorName={post.author?.name || "Utilisateur"}
                     authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
+                    authorId={post.author?.id}
                     authorAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                     timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                     content={post.content || ""}

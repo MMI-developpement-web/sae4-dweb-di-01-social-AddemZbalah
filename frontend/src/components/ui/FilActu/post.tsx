@@ -1,5 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { useNavigate } from "react-router-dom";
 import { cn } from "../../../lib/utils";
 
 
@@ -229,6 +230,7 @@ const actionsGroupVariants = cva("flex items-center justify-between gap-1 pt-1")
 interface PostProps {
   authorName: string;
   authorHandle: string;
+  authorId?: number;
   authorAvatar: string;
   timestamp: string;
   content: string;
@@ -245,6 +247,7 @@ interface PostProps {
 export default function Post({
   authorName,
   authorHandle,
+  authorId,
   authorAvatar,
   timestamp,
   content,
@@ -257,22 +260,38 @@ export default function Post({
   onMoreActions,
   onDelete,
 }: PostProps) {
+  const navigate = useNavigate();
+
+  const handleAuthorClick = () => {
+    if (authorId) {
+      navigate(`/profil/${authorId}`);
+    }
+  };
   return (
     <article className={cn(postVariants({ density: "comfy" }))}>
       <header className={cn(postHeaderVariants())}>
         <figure className="shrink-0">
-          <img
-            src={authorAvatar}
-            alt={authorName}
-            className={cn(avatarImageVariants({ size: "sm" }))}
-          />
+          <button
+            onClick={handleAuthorClick}
+            className="rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
+            aria-label={`Voir le profil de ${authorName}`}
+          >
+            <img
+              src={authorAvatar}
+              alt={authorName}
+              className={cn(avatarImageVariants({ size: "sm" }))}
+            />
+          </button>
         </figure>
 
         <div className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-1.5">
-            <p className={cn(authorNameVariants({ size: "sm" }))}>
+            <button
+              onClick={handleAuthorClick}
+              className="font-semibold text-secondary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
+            >
               {authorName}
-            </p>
+            </button>
             <p className={cn(authorMetaVariants({ size: "sm" }))}>@{authorHandle}</p>
             <span className={cn(separatorVariants({ size: "sm" }))}>·</span>
             <time className={cn(timestampVariants({ size: "sm" }))}>
