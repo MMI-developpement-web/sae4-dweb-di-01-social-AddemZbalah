@@ -150,7 +150,7 @@ export default function Utilisateurs() {
           </svg>
         </button>
         <img
-          src={`${import.meta.env.BASE_URL}assets/image 5 (1).png`}
+          src={`${import.meta.env.BASE_URL}/assets/image 5 (1).png`}
           alt="Logo Zbalah"
           className="pointer-events-auto h-9 w-auto object-contain"
         />
@@ -208,7 +208,7 @@ export default function Utilisateurs() {
               <span className="text-primary">utilisateur</span>
             </h1>
             <img
-              src={`${import.meta.env.BASE_URL}assets/image 5 (1).png`}
+              src={`${import.meta.env.BASE_URL}/assets/image 5 (1).png`}
               alt="Logo Zbalah"
               className="hidden h-14 w-auto object-contain lg:block"
             />

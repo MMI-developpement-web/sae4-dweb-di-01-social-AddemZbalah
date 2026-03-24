@@ -10,6 +10,9 @@ export default function Inscription() {
   const [password, setPassword] = useState("");
   const navigate = useNavigate();
 
+  // Validation du username: seulement alphanumériques, underscores et tirets
+  const isValidUsername = /^[a-zA-Z0-9_-]*$/.test(username);
+
   const hasMinLength = password.length >= 12;
   const hasDigit = /\d/.test(password);
   const hasUppercase = /[A-Z]/.test(password);
@@ -17,10 +20,17 @@ export default function Inscription() {
   const hasMixedCase = hasUppercase && hasLowercase;
   const hasSpecialChar = /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password);
 
-  const isFormValid = username && email && password && hasMinLength && hasDigit && hasMixedCase && hasSpecialChar;
+  const isFormValid = username && isValidUsername && email && password && hasMinLength && hasDigit && hasMixedCase && hasSpecialChar;
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
+    // Validation du username
+    if (!isValidUsername) {
+      alert("Le nom d'utilisateur ne peut contenir que des lettres, chiffres, traits d'union et underscores.");
+      return;
+    }
+    
     if (isFormValid) {
       try {
         const response = await fetch("https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/api/register", {

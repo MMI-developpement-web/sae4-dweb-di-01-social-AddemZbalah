@@ -26,7 +26,7 @@ interface ConnexionVerifProps extends VariantProps<typeof verificationItemVarian
 export default function ConnexionVerif({
   children,
   status,
-  icon = `${import.meta.env.BASE_URL}assets/Check circle.svg`,
+  icon = `${import.meta.env.BASE_URL}/assets/Check circle.svg`,
   ariaLabel,
 }: ConnexionVerifProps) {
   return (
@@ -43,7 +43,7 @@ export default function ConnexionVerif({
           aria-hidden="true"
         />
       </div>
-      <p className="text-xs font-semibold leading-tight text-secondary whitespace-nowrap">
+      <p className="text-[0.65rem] font-semibold leading-tight text-secondary">
         {children}
       </p>
     </div>
