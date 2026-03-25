@@ -3,8 +3,8 @@ import Post from "../ui/FilActu/post";
 import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
 
-// Banner image asset
-const bannerImage = "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1200&h=250&fit=crop";
+// Default banner image asset
+const defaultBannerImage = "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1200&h=250&fit=crop";
 
 export default function Profil() {
   const { userId } = useParams<{ userId?: string }>();
@@ -208,7 +208,7 @@ export default function Profil() {
           {/* Banner image */}
           <figure className="relative h-48 bg-linear-to-r from-purple-900 via-purple-800 to-purple-900 overflow-hidden">
             <img 
-              src={bannerImage}
+              src={displayedUser?.bannerImage || defaultBannerImage}
               alt="Bannière de profil"
               className="w-full h-full object-cover opacity-60"
             />
@@ -217,7 +217,7 @@ export default function Profil() {
           {/* Avatar - overlaid on banner, outside overflow */}
           <figure className="absolute left-6 top-24 w-28 h-28 rounded-full border-4 border-fil bg-white/20 backdrop-blur-sm overflow-hidden z-50">
             <img
-              src={`https://api.dicebear.com/7.x/avataaars/svg?seed=${displayedUser?.name || 'user'}`}
+              src={displayedUser?.profilePhoto || `https://api.dicebear.com/7.x/avataaars/svg?seed=${displayedUser?.name || 'user'}`}
               alt={`Avatar de ${displayedUser?.name}`}
               className="w-full h-full object-cover"
             />
@@ -248,26 +248,35 @@ export default function Profil() {
             )}
           </div>
 
+          {/* Bio */}
+          {displayedUser?.bio && (
+            <p className="text-sm text-white mb-4">{displayedUser.bio}</p>
+          )}
+
           {/* Info items with icons */}
           <address className="flex flex-wrap gap-4 text-xs text-white/60 mb-6 not-italic">
-            <span className="flex items-center gap-1">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-              </svg>
-              Localisation
-            </span>
-            <a href={`https://${displayedUser?.mail}`} className="flex items-center gap-1 text-purple-400 hover:underline">
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4.243 4.243a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4.243-4.243a4 4 0 00-5.656-5.656l-1.1 1.1" />
-              </svg>
-              Site web
-            </a>
+            {displayedUser?.location && (
+              <span className="flex items-center gap-1">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                {displayedUser.location}
+              </span>
+            )}
+            {displayedUser?.website && (
+              <a href={displayedUser.website.startsWith('http') ? displayedUser.website : `https://${displayedUser.website}`} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1 text-purple-400 hover:underline">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4.243 4.243a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.658 0l4.243-4.243a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+                {displayedUser.website}
+              </a>
+            )}
             <span className="flex items-center gap-1">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
               </svg>
-              Membre depuis 2021
+              {displayedUser?.createdAt ? new Date(displayedUser.createdAt).getFullYear() : 'Date inconnue'}
             </span>
             <a href={`mailto:${displayedUser?.mail}`} className="flex items-center gap-1 text-white/60 hover:text-white transition-colors">
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -280,11 +289,11 @@ export default function Profil() {
           {/* Follower stats */}
           <dl className="flex gap-8">
             <div>
-              <dt className="text-white font-bold text-lg">342</dt>
+              <dt className="text-white font-bold text-lg">{displayedUser?.followingCount || 0}</dt>
               <dd className="text-white/60 text-xs">Abonnements</dd>
             </div>
             <div>
-              <dt className="text-white font-bold text-lg">12 800</dt>
+              <dt className="text-white font-bold text-lg">{displayedUser?.followersCount || 0}</dt>
               <dd className="text-white/60 text-xs">Abonnés</dd>
             </div>
           </dl>

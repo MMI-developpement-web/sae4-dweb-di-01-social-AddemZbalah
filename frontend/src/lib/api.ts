@@ -19,9 +19,16 @@ export interface User {
   birthDate?: string;
   /** photo de profil (champ 'pp' dans la base) */
   pp?: string;
+  profilePhoto?: string;
   avatar?: string;
+  bio?: string;
+  bannerImage?: string;
+  location?: string;
+  website?: string;
   createdAt?: string;
   postsCount?: number;
+  followersCount?: number;
+  followingCount?: number;
 }
 
 export interface Post {
@@ -264,5 +271,27 @@ export async function isFollowingUser(userId: number): Promise<boolean> {
     } catch (err) {
         console.error('Check following status error:', err);
         return false;
+    }
+}
+
+// Update user profile
+export async function updateUserProfile(profileData: {
+    bio?: string;
+    profilePhoto?: string;
+    bannerImage?: string;
+    location?: string;
+    website?: string;
+}): Promise<User | null> {
+    try {
+        const res = await fetch(`${API_BASE}/user/update`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(profileData),
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error('Update profile error:', err);
+        return null;
     }
 }

@@ -38,6 +38,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Column(options: ['default' => false])]
     private bool $isBlocked = false;
 
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['default'])]
+    private ?string $bio = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['default'])]
+    private ?string $profilePhoto = null;
+
+    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[Groups(['default'])]
+    private ?string $bannerImage = null;
+
+    #[ORM\Column(length: 255, nullable: true)]
+    #[Groups(['default'])]
+    private ?string $location = null;
+
+    #[ORM\Column(length: 500, nullable: true)]
+    #[Groups(['default'])]
+    private ?string $website = null;
+
     #[ORM\OneToOne(mappedBy: 'user_id', cascade: ['persist', 'remove'])]
     private ?Token $token = null;
 
@@ -284,6 +304,66 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsBlocked(bool $isBlocked): static
     {
         $this->isBlocked = $isBlocked;
+
+        return $this;
+    }
+
+    public function getBio(): ?string
+    {
+        return $this->bio;
+    }
+
+    public function setBio(?string $bio): static
+    {
+        $this->bio = $bio;
+
+        return $this;
+    }
+
+    public function getProfilePhoto(): ?string
+    {
+        return $this->profilePhoto;
+    }
+
+    public function setProfilePhoto(?string $profilePhoto): static
+    {
+        $this->profilePhoto = $profilePhoto;
+
+        return $this;
+    }
+
+    public function getBannerImage(): ?string
+    {
+        return $this->bannerImage;
+    }
+
+    public function setBannerImage(?string $bannerImage): static
+    {
+        $this->bannerImage = $bannerImage;
+
+        return $this;
+    }
+
+    public function getLocation(): ?string
+    {
+        return $this->location;
+    }
+
+    public function setLocation(?string $location): static
+    {
+        $this->location = $location;
+
+        return $this;
+    }
+
+    public function getWebsite(): ?string
+    {
+        return $this->website;
+    }
+
+    public function setWebsite(?string $website): static
+    {
+        $this->website = $website;
 
         return $this;
     }
