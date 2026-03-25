@@ -28,6 +28,11 @@ class AuthController extends AbstractController
             return $this->json(['error' => 'Identifiants invalides'], 401);
         }
 
+        // Check if user is blocked
+        if ($user->getIsBlocked()) {
+            return $this->json(['error' => 'Ce compte a été bloqué'], 403);
+        }
+
         $token = $tokenManager->generateForUser($user);
 
         return $this->json(['token' => $token]);
@@ -56,5 +61,20 @@ class AuthController extends AbstractController
             'mail' => $user->getMail(),
         ]);
     }
+
+    #[Route('/api/users/{id}', name: 'api_user_get', methods: ['GET'])]
+    public function getUserById(int $id, UserRepository $userRepository): JsonResponse
+    {
+        $user = $userRepository->find($id);
+
+        if (!$user) {
+            return $this->json(['error' => 'User not found'], 404);
+        }
+
+        return $this->json([
+            'id' => $user->getId(),
+            'name' => $user->getName(),
+            'mail' => $user->getMail(),
+        ]);
+    }
 }
-use Doctrine\ORM\EntityManagerInterface;

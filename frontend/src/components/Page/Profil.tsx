@@ -1,38 +1,15 @@
 import { useEffect, useState } from "react";
 import Post from "../ui/FilActu/post";
-import { getPosts, deletePost, getCurrentUser } from "../../lib/api";
+import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
 
 // Banner image asset
 const bannerImage = "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1200&h=250&fit=crop";
 
-// Mock function to fetch user details (will be replaced with API call)
-async function getUserById(userId: number): Promise<any> {
-  try {
-    // This will be implemented on the backend
-    // For now, we'll return a mock user
-    const response = await fetch(
-      `${import.meta.env.VITE_API_URL}/users/${userId}`,
-      {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('token')}`,
-          'Accept': 'application/json'
-        }
-      }
-    );
-    if (!response.ok) {
-      return null;
-    }
-    return await response.json();
-  } catch (err) {
-    console.error("Failed to fetch user:", err);
-    return null;
-  }
-}
-
 export default function Profil() {
   const { userId } = useParams<{ userId?: string }>();
   const [posts, setPosts] = useState<any[]>([]);
+  const [postsCount, setPostsCount] = useState<number | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(undefined);
   const [displayedUser, setDisplayedUser] = useState<any>(undefined);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -59,8 +36,10 @@ export default function Profil() {
     fetchUser();
   }, [navigate]);
 
-  // Fetch user to display and their posts
+  // Fetch user to display
   useEffect(() => {
+    let isMounted = true;
+
     async function fetchUserData() {
       try {
         let userToDisplay = currentUser;
@@ -68,10 +47,11 @@ export default function Profil() {
         // If userId is provided, fetch that user instead
         if (userId && currentUser) {
           const userFromApi = await getUserById(parseInt(userId));
+          if (!isMounted) return;
+          
           if (userFromApi) {
             userToDisplay = userFromApi;
           } else {
-            // Fallback to mock if API fails
             userToDisplay = {
               id: parseInt(userId),
               name: "Utilisateur",
@@ -80,18 +60,25 @@ export default function Profil() {
           }
         }
 
+        if (!isMounted) return;
         setDisplayedUser(userToDisplay);
 
-        // Fetch posts for displayed user
-        if (userToDisplay?.id) {
-          const data = await getPosts(1, userToDisplay.id);
-          setPosts(data.posts || []);
-        }
+        // Try to load cached posts count immediately so header can show it
+        try {
+          const cached = localStorage.getItem(`postsCount-${userToDisplay.id}`);
+          if (cached !== null) setPostsCount(parseInt(cached));
+        } catch (e) {}
 
-        // Check if current user is following this user (mock for now)
+        // Check if current user is following this user
         if (userId && currentUser && parseInt(userId) !== currentUser.id) {
-          const followingList = JSON.parse(localStorage.getItem("following") || "[]");
-          setIsFollowing(followingList.includes(parseInt(userId)));
+          try {
+            const following = await isFollowingUser(parseInt(userId));
+            if (isMounted) {
+              setIsFollowing(following);
+            }
+          } catch (err) {
+            console.error("Failed to check following status:", err);
+          }
         }
       } catch (error) {
         console.error("Network error:", error);
@@ -101,7 +88,38 @@ export default function Profil() {
     if (currentUser !== undefined) {
       fetchUserData();
     }
+
+    return () => {
+      isMounted = false;
+    };
   }, [userId, currentUser]);
+
+  // Fetch posts when displayedUser changes
+  useEffect(() => {
+    if (!displayedUser?.id) return;
+    const userIdToFetch = displayedUser.id;
+
+    // Load cached count if present to avoid flashing 0
+    try {
+      const cached = localStorage.getItem(`postsCount-${userIdToFetch}`);
+      if (cached !== null) setPostsCount(parseInt(cached));
+    } catch (e) {
+      // ignore
+    }
+
+    getPosts(1, userIdToFetch).then(data => {
+      const list = data.posts || [];
+      setPosts(list);
+      const count = (data && data.pagination && typeof data.pagination.total_items === 'number') ? data.pagination.total_items : list.length;
+      setPostsCount(count);
+      try { localStorage.setItem(`postsCount-${userIdToFetch}`, String(count)); } catch(e) {}
+    }).catch(error => {
+      console.error("Error fetching posts:", error);
+      // keep cached postsCount if any
+    });
+  }, [displayedUser?.id]);
+
+  // Note: postsCount removed — display uses posts.length to avoid flapping
 
   const handleDeletePost = async (postId: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce tweet ?")) {
@@ -119,22 +137,28 @@ export default function Profil() {
     
     setIsLoadingFollow(true);
     try {
-      // Mock local storage follow/unfollow
-      // This will be replaced with API calls
-      const followingList = JSON.parse(localStorage.getItem("following") || "[]");
-      const isCurrentlyFollowing = followingList.includes(displayedUser.id);
-      
-      if (isCurrentlyFollowing) {
-        const newList = followingList.filter((id: number) => id !== displayedUser.id);
-        localStorage.setItem("following", JSON.stringify(newList));
-        setIsFollowing(false);
+      if (isFollowing) {
+        // Unfollow
+        const success = await unfollowUser(displayedUser.id);
+        if (success) {
+          setIsFollowing(false);
+        } else {
+          console.error("Failed to unfollow user");
+          alert("Erreur lors du retrait du suivi");
+        }
       } else {
-        followingList.push(displayedUser.id);
-        localStorage.setItem("following", JSON.stringify(followingList));
-        setIsFollowing(true);
+        // Follow
+        const success = await followUser(displayedUser.id);
+        if (success) {
+          setIsFollowing(true);
+        } else {
+          console.error("Failed to follow user");
+          alert("Erreur lors du suivi de l'utilisateur");
+        }
       }
     } catch (err) {
-      console.error("Follow error:", err);
+      console.error("Follow toggle error:", err);
+      alert("Une erreur est survenue");
     } finally {
       setIsLoadingFollow(false);
     }
@@ -153,6 +177,8 @@ export default function Profil() {
   if (currentUser === null) {
     return null;
   }
+
+  console.log('Render with posts:', posts, 'displayedUser:', displayedUser?.name);
 
   const userHandle = displayedUser?.name?.toLowerCase().replace(/\s/g, '') || displayedUser?.mail?.split('@')[0] || 'user';
 
@@ -173,7 +199,7 @@ export default function Profil() {
           
           <hgroup className="flex flex-col items-center">
             <h1 className="text-base font-bold text-white">{displayedUser?.name || 'Utilisateur'}</h1>
-            <p className="text-xs text-white/60">{posts.length} posts</p>
+            <p className="text-xs text-white/60">{posts.length > 0 ? posts.length : (postsCount !== null ? postsCount : 0)} posts</p>
           </hgroup>
         </header>
 
@@ -285,6 +311,7 @@ export default function Profil() {
             posts.map((post) => (
               <li key={post.id} className="list-none border-b border-primary/20">
                 <Post
+                  postId={post.id}
                   authorName={post.author?.name || "Utilisateur"}
                   authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
                   authorId={post.author?.id}
@@ -293,7 +320,6 @@ export default function Profil() {
                   content={post.content || ""}
                   commentCount={0}
                   shareCount={0}
-                  likeCount={0}
                   onDelete={
                     currentUser && post.author?.id === currentUser.id
                       ? () => handleDeletePost(post.id)

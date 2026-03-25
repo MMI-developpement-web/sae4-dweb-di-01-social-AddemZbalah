@@ -1,15 +1,37 @@
-import { useMemo, useState, type FormEvent } from "react";
+import { useMemo, useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import AddPosts from "../ui/Posts/addPosts";
-import { createPost } from "../../lib/api";
+import { createPost, getCurrentUser } from "../../lib/api";
 
 const MAX_POST_LENGTH = 200;
 
 export default function Addposts() {
   const [content, setContent] = useState("");
   const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Fetch current user on mount
+  useEffect(() => {
+    async function fetchUser() {
+      try {
+        const user = await getCurrentUser();
+        if (user) {
+          setCurrentUser(user);
+        } else {
+          navigate("/connexion");
+        }
+      } catch (err) {
+        console.error("Failed to load user:", err);
+        navigate("/connexion");
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchUser();
+  }, [navigate]);
 
   const remainingCharacters = useMemo(
     () => MAX_POST_LENGTH - content.length,
@@ -35,16 +57,28 @@ export default function Addposts() {
     }
   };
 
+  if (isLoading) {
+    return (
+      <main className="flex min-h-screen items-start justify-center bg-connexion p-4 sm:p-8">
+        <div className="flex items-center justify-center">
+          <p className="text-secondary">Chargement...</p>
+        </div>
+      </main>
+    );
+  }
+
+  const userHandle = currentUser?.name?.toLowerCase().replace(/\s/g, '') || 'utilisateur';
+
   return (
     <main className="flex min-h-screen items-start justify-center bg-connexion p-4 sm:p-8">
       <article className="w-full max-w-4xl rounded-3xl border border-secondary/30 bg-secondary/25 p-6 shadow-sm backdrop-blur-sm sm:p-8">
         <header className="flex items-center gap-3">
           <p className="flex h-12 w-12 items-center justify-center rounded-full bg-linear-to-b from-primary to-secondary text-xl font-semibold text-primary-foreground">
-            U
+            {currentUser?.name?.[0]?.toUpperCase() || 'U'}
           </p>
           <section aria-label="Informations utilisateur" className="leading-tight">
-            <h1 className="text-xl font-semibold text-secondary">Utilisateur</h1>
-            <p className="text-base font-semibold text-secondary/70">@utilisateur</p>
+            <h1 className="text-xl font-semibold text-secondary">{currentUser?.name || 'Utilisateur'}</h1>
+            <p className="text-base font-semibold text-secondary/70">@{userHandle}</p>
           </section>
         </header>
 

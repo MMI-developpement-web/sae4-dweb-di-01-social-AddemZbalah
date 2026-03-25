@@ -1,9 +1,9 @@
 // API utility for calling backend endpoints
-// const isLocal = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1';
-const API_BASE = import.meta.env.VITE_API_URL 
-// || (isLocal 
-  // ? 'http://localhost:8080/api' 
-  // : 'https://mmi.unilim.fr/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/backend/public/index.php/api');
+
+// API Configuration
+const API_BASE = import.meta.env.VITE_API_URL || '/api';
+
+export { API_BASE };
 
 export interface User {
   id: number;
@@ -135,7 +135,29 @@ export async function getPosts(page: number = 1, authorId?: number): Promise<any
     return await res.json();
   } catch (err) {
     console.error('Get posts error:', err);
-    return [];
+    return { posts: [] };
+  }
+}
+
+// Get only the number of posts for an author (uses pagination.total_items when available)
+export async function getPostsCount(authorId?: number): Promise<number> {
+  try {
+    const url = authorId 
+      ? `${API_BASE}/posts?page=1&author_id=${authorId}` 
+      : `${API_BASE}/posts?page=1`;
+    const res = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    if (!res.ok) throw new Error('Fetch posts count failed');
+    const data = await res.json();
+    if (data && data.pagination && typeof data.pagination.total_items === 'number') {
+      return data.pagination.total_items;
+    }
+    if (data && Array.isArray(data.posts)) return data.posts.length;
+    return 0;
+  } catch (err) {
+    console.error('Get posts count error:', err);
+    return 0;
   }
 }
 
@@ -185,5 +207,62 @@ export async function getCurrentUser(): Promise<User | null> {
         return await res.json();
     } catch (err) {
         return null;
+    }
+}
+
+// Get User by ID
+export async function getUserById(userId: number): Promise<User | null> {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}`, {
+            headers: getAuthHeaders()
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error('Get user by ID error:', err);
+        return null;
+    }
+}
+
+// Follow a user
+export async function followUser(userId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}/follow`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+        });
+        return res.ok;
+    } catch (err) {
+        console.error('Follow user error:', err);
+        return false;
+    }
+}
+
+// Unfollow a user
+export async function unfollowUser(userId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}/unfollow`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        return res.ok;
+    } catch (err) {
+        console.error('Unfollow user error:', err);
+        return false;
+    }
+}
+
+// Check if current user is following a user
+export async function isFollowingUser(userId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}/is-following`, {
+            headers: getAuthHeaders(),
+        });
+        if (!res.ok) return false;
+        const data = await res.json();
+        return data.isFollowing || false;
+    } catch (err) {
+        console.error('Check following status error:', err);
+        return false;
     }
 }

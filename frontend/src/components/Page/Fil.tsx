@@ -231,6 +231,7 @@ export default function Fil() {
               posts.map((post) => (
                 <li key={post.id} className="list-none border-b border-primary/20">
                   <Post
+                    postId={post.id}
                     authorName={post.author?.name || "Utilisateur"}
                     authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
                     authorId={post.author?.id}
@@ -239,10 +240,9 @@ export default function Fil() {
                     content={post.content || ""}
                     commentCount={0} // À implémenter plus tard côté backend
                     shareCount={0}
-                    likeCount={0}
                     onComment={() => {}}
+                    isAuthorBlocked={post.isAuthorBlocked || false}
                     onShare={() => {}}
-                    onLike={() => {}}
                     onDelete={
                       currentUser && post.author?.id === currentUser.id
                         ? () => handleDeletePost(post.id)

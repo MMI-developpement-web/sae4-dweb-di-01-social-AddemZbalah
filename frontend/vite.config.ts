@@ -14,6 +14,13 @@ export default defineConfig({
    strictPort: true,
    host: true,
    origin: "http://localhost:8090",
-   allowedHosts: ["sae-frontend"]
+   allowedHosts: ["sae-frontend"],
+   proxy: {
+     '/api': {
+       target: 'http://sae-nginx:8080',
+       changeOrigin: true,
+       rewrite: (path) => path.replace(/^\/api/, '/api'),
+     }
+   }
   },
 });

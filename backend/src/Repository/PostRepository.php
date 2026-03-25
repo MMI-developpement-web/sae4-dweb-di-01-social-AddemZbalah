@@ -3,6 +3,7 @@
 namespace App\Repository;
 
 use App\Entity\Post;
+use App\Entity\User;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
@@ -34,6 +35,45 @@ class PostRepository extends ServiceEntityRepository
         return $qb->getQuery()->getResult();
     }
 
+    /**
+     * Find posts from followed users
+     * @param User[] $followingUsers Array of users to get posts from
+     */
+    public function findFeed(array $followingUsers, int $limit, int $offset): array
+    {
+        if (empty($followingUsers)) {
+            return [];
+        }
+
+        return $this->createQueryBuilder('p')
+            ->andWhere('p.author IN (:authors)')
+            ->setParameter('authors', $followingUsers)
+            ->orderBy('p.createdAt', 'DESC')
+            ->setMaxResults($limit)
+            ->setFirstResult($offset)
+            ->getQuery()
+            ->getResult();
+    }
+
+    /**
+     * Count posts from followed users
+     * @param User[] $followingUsers Array of users to get posts from
+     */
+    public function countFeed(array $followingUsers): int
+    {
+        if (empty($followingUsers)) {
+            return 0;
+        }
+
+        return (int) $this->createQueryBuilder('p')
+            ->select('COUNT(p.id)')
+            ->andWhere('p.author IN (:authors)')
+            ->setParameter('authors', $followingUsers)
+            ->getQuery()
+            ->getSingleScalarResult();
+    }
+}
+
 //    /**
 //     * @return Post[] Returns an array of Post objects
 //     */
@@ -58,4 +98,4 @@ class PostRepository extends ServiceEntityRepository
 //            ->getOneOrNullResult()
 //        ;
 //    }
-}
+

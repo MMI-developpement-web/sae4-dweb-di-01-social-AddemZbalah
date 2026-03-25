@@ -2,6 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../../lib/utils";
+import LikeButton from "./LikeButton";
 
 
 const MessageCircleIcon = () => (
@@ -28,18 +29,6 @@ const RepeatIcon = () => (
     <path d="M3 11v-1a4 4 0 0 1 4-4h14" />
     <polyline points="7 22 3 18 7 14" />
     <path d="M21 13v1a4 4 0 0 1-4 4H3" />
-  </svg>
-);
-
-const HeartIcon = () => (
-  <svg
-    className="size-full"
-    viewBox="0 0 24 24"
-    fill="none"
-    stroke="currentColor"
-    strokeWidth="2"
-  >
-    <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
   </svg>
 );
 
@@ -228,6 +217,7 @@ const moreActionsButtonVariants = cva(
 const actionsGroupVariants = cva("flex items-center justify-between gap-1 pt-1");
 
 interface PostProps {
+  postId: number;
   authorName: string;
   authorHandle: string;
   authorId?: number;
@@ -236,15 +226,15 @@ interface PostProps {
   content: string;
   commentCount?: number;
   shareCount?: number;
-  likeCount?: number;
+  isAuthorBlocked?: boolean;
   onComment?: () => void;
   onShare?: () => void;
-  onLike?: () => void;
   onMoreActions?: () => void;
   onDelete?: () => void;
 }
 
 export default function Post({
+  postId,
   authorName,
   authorHandle,
   authorId,
@@ -253,17 +243,16 @@ export default function Post({
   content,
   commentCount = 0,
   shareCount = 0,
-  likeCount = 0,
+  isAuthorBlocked = false,
   onComment,
   onShare,
-  onLike,
   onMoreActions,
   onDelete,
 }: PostProps) {
   const navigate = useNavigate();
 
   const handleAuthorClick = () => {
-    if (authorId) {
+    if (authorId && !isAuthorBlocked) {
       navigate(`/profil/${authorId}`);
     }
   };
@@ -273,8 +262,9 @@ export default function Post({
         <figure className="shrink-0">
           <button
             onClick={handleAuthorClick}
-            className="rounded-full hover:opacity-80 transition-opacity focus:outline-none focus-visible:ring-2 focus-visible:ring-primary"
-            aria-label={`Voir le profil de ${authorName}`}
+            disabled={isAuthorBlocked}
+            className={cn("rounded-full focus:outline-none focus-visible:ring-2 focus-visible:ring-primary", isAuthorBlocked ? "cursor-not-allowed opacity-60" : "hover:opacity-80 transition-opacity")}
+            aria-label={isAuthorBlocked ? `${authorName} - Compte bloqué` : `Voir le profil de ${authorName}`}
           >
             <img
               src={authorAvatar}
@@ -288,15 +278,22 @@ export default function Post({
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleAuthorClick}
-              className="font-semibold text-secondary hover:underline focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1"
+              disabled={isAuthorBlocked}
+              className={cn("font-semibold text-secondary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary rounded px-1", isAuthorBlocked ? "cursor-not-allowed opacity-70" : "hover:underline")}
             >
               {authorName}
             </button>
-            <p className={cn(authorMetaVariants({ size: "sm" }))}>@{authorHandle}</p>
-            <span className={cn(separatorVariants({ size: "sm" }))}>·</span>
-            <time className={cn(timestampVariants({ size: "sm" }))}>
-              {timestamp}
-            </time>
+            {isAuthorBlocked ? (
+              <p className={cn(authorMetaVariants({ size: "sm" }), "text-red-500 font-medium")}>Compte bloqué</p>
+            ) : (
+              <>
+                <p className={cn(authorMetaVariants({ size: "sm" }))}>@{authorHandle}</p>
+                <span className={cn(separatorVariants({ size: "sm" }))}>·</span>
+                <time className={cn(timestampVariants({ size: "sm" }))}>
+                  {timestamp}
+                </time>
+              </>
+            )}
           </div>
         </div>
 
@@ -353,13 +350,7 @@ export default function Post({
           onClick={onShare}
           size="md"
         />
-        <ActionButton
-          icon={<HeartIcon />}
-          count={likeCount}
-          ariaLabel={`${likeCount} likes`}
-          onClick={onLike}
-          size="md"
-        />
+        <LikeButton postId={postId} size="md" />
         <ActionButton
           icon={<ShareIcon />}
           ariaLabel="Partager"
