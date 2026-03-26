@@ -4,10 +4,12 @@ namespace App\Controller\Api;
 
 use App\Entity\Like;
 use App\Entity\Post;
+use App\Entity\Reply;
 use App\Entity\User;
 use App\Repository\FollowRepository;
 use App\Repository\LikeRepository;
 use App\Repository\PostRepository;
+use App\Repository\ReplyRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -24,6 +26,7 @@ class PostController extends AbstractController
         private PostRepository $postRepository,
         private LikeRepository $likeRepository,
         private FollowRepository $followRepository,
+        private ReplyRepository $replyRepository,
         private EntityManagerInterface $em,
         private ValidatorInterface $validator,
     ) {
@@ -42,6 +45,7 @@ class PostController extends AbstractController
         return [
             'id' => $post->getId(),
             'content' => $post->getContent(),
+            'mediaUrl' => $post->getMediaUrl(),
             'createdAt' => $post->getCreatedAt()?->format('c'),
             'author' => [
                 'id' => $author->getId(),
@@ -53,6 +57,7 @@ class PostController extends AbstractController
             ],
             'isAuthorBlocked' => $author->getIsBlocked(),
             'likes' => count($post->getLikes()),
+            'replies' => count($post->getReplies()),
         ];
     }
 
@@ -117,10 +122,11 @@ class PostController extends AbstractController
     {
         $data = json_decode($request->getContent(), true);
         $content = trim((string) ($data['content'] ?? ''));
+        $mediaUrl = isset($data['mediaUrl']) ? trim((string) $data['mediaUrl']) : null;
 
         $violations = $this->validator->validate($content, [
             new Assert\NotBlank(message: 'Le post ne peut pas être vide.'),
-            new Assert\Length(max: 200, maxMessage: 'Le post ne peut pas dépasser 200 caractères.'),
+            new Assert\Length(max: 280, maxMessage: 'Le post ne peut pas dépasser 280 caractères.'),
         ]);
 
         if (count($violations) > 0) {
@@ -129,6 +135,9 @@ class PostController extends AbstractController
 
         $post = new Post();
         $post->setContent($content);
+        if ($mediaUrl) {
+            $post->setMediaUrl($mediaUrl);
+        }
         $post->setCreatedAt(new \DateTimeImmutable());
         $post->setAuthor($this->getUser());
 
@@ -147,6 +156,12 @@ class PostController extends AbstractController
     public function like(Post $post): JsonResponse
     {
         $user = $this->getUser();
+        $postAuthor = $post->getAuthor();
+        
+        // Check if user is blocked by post author
+        if ($postAuthor->isBlockingUser($user)) {
+            return $this->json(['error' => 'Vous avez été bloqué par cet utilisateur'], 403);
+        }
         
         // Check if already liked
         $existing = $this->likeRepository->findByPostAndUser($post, $user);
@@ -253,5 +268,138 @@ class PostController extends AbstractController
                 'total_items' => $total,
             ],
         ], 200, [], ['groups' => 'default']);
+    }
+
+    /**
+     * Update a post (edit)
+     * PUT /api/posts/{id}
+     */
+    #[Route('/posts/{id}', name: 'api.posts.update', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER')]
+    public function update(Post $post, Request $request): JsonResponse
+    {
+        if ($post->getAuthor() !== $this->getUser()) {
+            return $this->json(['error' => 'Unauthorized or you are not the author.'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $content = trim((string) ($data['content'] ?? ''));
+        $mediaUrl = isset($data['mediaUrl']) ? trim((string) $data['mediaUrl']) : null;
+
+        $violations = $this->validator->validate($content, [
+            new Assert\NotBlank(message: 'Le post ne peut pas être vide.'),
+            new Assert\Length(max: 280, maxMessage: 'Le post ne peut pas dépasser 280 caractères.'),
+        ]);
+
+        if (count($violations) > 0) {
+            return $this->json(['error' => $violations[0]->getMessage()], 422);
+        }
+
+        $post->setContent($content);
+        if ($mediaUrl !== null) {
+            $post->setMediaUrl($mediaUrl ?: null);
+        }
+
+        $this->em->flush();
+
+        return $this->json($post, 200, [], ['groups' => 'default']);
+    }
+
+    /**
+     * Create a reply to a post
+     * POST /api/posts/{id}/replies
+     */
+    #[Route('/posts/{id}/replies', name: 'api.replies.create', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function createReply(Post $post, Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        $postAuthor = $post->getAuthor();
+        
+        // Check if user is blocked by post author
+        if ($postAuthor->isBlockingUser($user)) {
+            return $this->json(['error' => 'Vous avez été bloqué par cet utilisateur'], 403);
+        }
+        
+        $data = json_decode($request->getContent(), true);
+        $textContent = trim((string) ($data['textContent'] ?? ''));
+
+        $violations = $this->validator->validate($textContent, [
+            new Assert\NotBlank(message: 'La réponse ne peut pas être vide.'),
+            new Assert\Length(max: 280, maxMessage: 'La réponse ne peut pas dépasser 280 caractères.'),
+        ]);
+
+        if (count($violations) > 0) {
+            return $this->json(['error' => $violations[0]->getMessage()], 422);
+        }
+
+        $reply = new Reply();
+        $reply->setTextContent($textContent);
+        $reply->setCreatedAt(new \DateTimeImmutable());
+        $reply->setAuthor($this->getUser());
+        $reply->setCommentOf($post);
+
+        $this->em->persist($reply);
+        $this->em->flush();
+
+        return $this->json($reply, 201, [], ['groups' => 'reply:read']);
+    }
+
+    /**
+     * Get replies for a post
+     * GET /api/posts/{id}/replies
+     */
+    #[Route('/posts/{id}/replies', name: 'api.replies.list', methods: ['GET'])]
+    public function getReplies(Post $post): JsonResponse
+    {
+        $replies = $this->replyRepository->findBy(['commentOf' => $post], ['createdAt' => 'DESC']);
+
+        return $this->json($replies, 200, [], ['groups' => 'reply:read']);
+    }
+
+    /**
+     * Delete a reply
+     * DELETE /api/replies/{id}
+     */
+    #[Route('/replies/{id}', name: 'api.replies.delete', methods: ['DELETE'])]
+    #[IsGranted('ROLE_USER')]
+    public function deleteReply(Reply $reply): JsonResponse
+    {
+        if ($reply->getAuthor() !== $this->getUser()) {
+            return $this->json(['error' => 'Unauthorized or you are not the author.'], 403);
+        }
+
+        $this->em->remove($reply);
+        $this->em->flush();
+
+        return $this->json(null, 204);
+    }
+
+    /**
+     * Censor a post (admin only)
+     * POST /api/posts/{id}/censor
+     */
+    #[Route('/posts/{id}/censor', name: 'api.posts.censor', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function censorPost(Post $post): JsonResponse
+    {
+        $post->setCensored(true);
+        $this->em->flush();
+
+        return $this->json(['censored' => true], 200);
+    }
+
+    /**
+     * Uncensor a post (admin only)
+     * DELETE /api/posts/{id}/censor
+     */
+    #[Route('/posts/{id}/censor', name: 'api.posts.uncensor', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function uncensorPost(Post $post): JsonResponse
+    {
+        $post->setCensored(false);
+        $this->em->flush();
+
+        return $this->json(['censored' => false], 200);
     }
 }

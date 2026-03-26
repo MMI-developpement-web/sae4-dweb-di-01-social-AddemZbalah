@@ -24,7 +24,10 @@ class AuthController extends AbstractController
         $data = json_decode($request->getContent(), true);
         $email = $data['email'] ?? $data['mail'] ?? '';
         $user = $userRepository->findOneBy(['mail' => $email]);
-        if (!$user) $user = $userRepository->findOneBy(['name' => $email]); if (!$user) { $user = $userRepository->findOneBy(['name' => $email]); }
+        
+        if (!$user) {
+            $user = $userRepository->findOneBy(['name' => $email]);
+        }
 
         if (!$user || !$hasher->isPasswordValid($user, $data['password'])) {
             return $this->json(['error' => 'Identifiants invalides'], 401);

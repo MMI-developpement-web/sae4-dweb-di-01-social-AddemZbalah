@@ -1,0 +1,171 @@
+import { useState, useEffect } from 'react';
+import Post from '../FilActu/post';
+import PostEdit from './PostEdit';
+import ReplyForm from './ReplyForm';
+import { getReplies } from '../../../lib/api';
+
+interface PostWrapperProps {
+  postId: number;
+  authorName: string;
+  authorHandle: string;
+  authorId?: number;
+  authorAvatar: string;
+  timestamp: string;
+  content: string;
+  mediaUrl?: string;
+  commentCount?: number;
+  shareCount?: number;
+  isAuthorBlocked?: boolean;
+  isCurrentUserAuthor?: boolean;
+  onComment?: () => void;
+  onShare?: () => void;
+  onDelete?: () => void;
+  onPostUpdated?: (updatedPost: any) => void;
+}
+
+export default function PostWrapper({
+  postId,
+  authorName,
+  authorHandle,
+  authorId,
+  authorAvatar,
+  timestamp,
+  content,
+  mediaUrl,
+  commentCount = 0,
+  shareCount = 0,
+  isAuthorBlocked = false,
+  isCurrentUserAuthor = false,
+  onComment,
+  onShare,
+  onDelete,
+  onPostUpdated,
+}: PostWrapperProps) {
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [showReplies, setShowReplies] = useState(false);
+  const [currentContent, setCurrentContent] = useState(content);
+  const [currentMediaUrl, setCurrentMediaUrl] = useState(mediaUrl);
+  const [replies, setReplies] = useState<any[]>([]);
+  const [replyCount, setReplyCount] = useState(commentCount || 0);
+  const [loadingReplies, setLoadingReplies] = useState(false);
+
+  // Sync state with props when they change
+  useEffect(() => {
+    setCurrentContent(content);
+    setCurrentMediaUrl(mediaUrl);
+  }, [content, mediaUrl]);
+
+  // Fetch replies on mount or when showReplies changes
+  useEffect(() => {
+    if (showReplies) {
+      const loadReplies = async () => {
+        try {
+          setLoadingReplies(true);
+          const data = await getReplies(postId);
+          setReplies(data || []);
+          setReplyCount(data?.length || 0);
+        } catch (error) {
+          console.error('Error loading replies:', error);
+        } finally {
+          setLoadingReplies(false);
+        }
+      };
+      loadReplies();
+    }
+  }, [showReplies, postId]);
+
+  const handleReplyAdded = async () => {
+    // Reload replies after new reply is added
+    try {
+      const data = await getReplies(postId);
+      setReplies(data || []);
+      setReplyCount(data?.length || 0);
+    } catch (error) {
+      console.error('Error reloading replies:', error);
+    }
+  };
+
+  const handleEditSave = (updatedPost: any) => {
+    setCurrentContent(updatedPost.content);
+    setCurrentMediaUrl(updatedPost.mediaUrl || null);
+    onPostUpdated?.(updatedPost);
+  };
+
+  return (
+    <>
+      <Post
+        postId={postId}
+        authorName={authorName}
+        authorHandle={authorHandle}
+        authorId={authorId}
+        authorAvatar={authorAvatar}
+        timestamp={timestamp}
+        content={
+          currentMediaUrl ? (
+            <div className="space-y-2">
+              <p>{currentContent}</p>
+              {currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                <video src={currentMediaUrl} controls className="w-full rounded-lg max-h-96 object-cover" />
+              ) : (
+                <img src={currentMediaUrl} alt="Post media" className="w-full rounded-lg max-h-96 object-cover" />
+              )}
+            </div>
+          ) : (
+            currentContent
+          )
+        }
+        commentCount={replyCount}
+        shareCount={shareCount}
+        isAuthorBlocked={isAuthorBlocked}
+        onComment={() => {
+          setShowReplies(!showReplies);
+          onComment?.();
+        }}
+        onShare={onShare}
+        onDelete={onDelete}
+        onMoreActions={() => {
+          if (isCurrentUserAuthor) {
+            setShowEditModal(true);
+          }
+        }}
+      />
+
+      {isCurrentUserAuthor && showEditModal && (
+        <PostEdit
+          postId={postId}
+          initialContent={currentContent}
+          initialMediaUrl={currentMediaUrl}
+          onClose={() => setShowEditModal(false)}
+          onSave={handleEditSave}
+        />
+      )}
+
+      {showReplies && (
+        <div className="px-4 py-2 ml-2 border-l-2 border-gray-200">
+          {/* Reply Form */}
+          <ReplyForm postId={postId} onReplyAdded={handleReplyAdded} />
+          
+          {/* Replies List */}
+          <div className="mt-4 space-y-4">
+            {loadingReplies ? (
+              <p className="text-gray-400 text-sm">Chargement des réponses...</p>
+            ) : replies.length > 0 ? (
+              replies.map((reply: any) => (
+                <div key={reply.id} className="pl-4 pt-3 border-l border-gray-200">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="font-bold text-sm">{reply.author?.name || 'Utilisateur'}</span>
+                    <span className="text-gray-500 text-xs">@{reply.author?.email?.split('@')[0] || 'user'}</span>
+                    <span className="text-gray-400 text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
+                  </div>
+                  <p className="text-white text-sm">{reply.textContent}</p>
+                </div>
+              ))
+            ) : (
+              <p className="text-gray-400 text-sm">Aucune réponse pour le moment</p>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+}

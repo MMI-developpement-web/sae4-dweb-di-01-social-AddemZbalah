@@ -2,7 +2,7 @@ import { useMemo, useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import AddPosts from "../ui/Posts/addPosts";
-import { createPost, getCurrentUser } from "../../lib/api";
+import { createPost, getCurrentUser, fileToBase64 } from "../../lib/api";
 
 const MAX_POST_LENGTH = 200;
 
@@ -49,7 +49,14 @@ export default function Addposts() {
     }
 
     try {
-      await createPost(content);
+      let mediaUrl: string | undefined = undefined;
+      
+      // Convert File to base64 if media is selected
+      if (mediaFile) {
+        mediaUrl = await fileToBase64(mediaFile);
+      }
+      
+      await createPost(content, mediaUrl);
       navigate("/fil");
     } catch (error: any) {
       console.error("Erreur réseau :", error);

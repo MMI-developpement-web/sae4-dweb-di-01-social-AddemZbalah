@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import Post from "../ui/FilActu/post";
+import PostWrapper from "../ui/Posts/PostWrapper";
 import Nav from "../ui/Navbar/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
 import { getPosts, deletePost, getCurrentUser } from "../../lib/api";
@@ -296,7 +296,7 @@ export default function Fil() {
             {posts.length > 0 ? (
               posts.map((post) => (
                 <li key={post.id} className="list-none border-b border-primary/20">
-                  <Post
+                  <PostWrapper
                     postId={post.id}
                     authorName={post.author?.name || "Utilisateur"}
                     authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
@@ -304,16 +304,23 @@ export default function Fil() {
                     authorAvatar={post.author?.profilePhoto || post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                     timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                     content={post.content || ""}
-                    commentCount={0}
+                    mediaUrl={post.mediaUrl}
+                    commentCount={post.replies || 0}
                     shareCount={0}
-                    onComment={() => {}}
+                    isCurrentUserAuthor={currentUser && post.author?.id === currentUser.id}
                     isAuthorBlocked={post.isAuthorBlocked || false}
+                    onComment={() => {}}
                     onShare={() => {}}
                     onDelete={
                       currentUser && post.author?.id === currentUser.id
                         ? () => handleDeletePost(post.id)
                         : undefined
                     }
+                    onPostUpdated={(updatedPost) => {
+                      setPosts((prev) =>
+                        prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+                      );
+                    }}
                   />
                 </li>
               ))

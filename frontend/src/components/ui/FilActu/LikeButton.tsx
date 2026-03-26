@@ -70,6 +70,10 @@ export default function LikeButton({
         const data = await response.json();
         setLiked(data.liked);
         setCount(data.likes_count);
+      } else if (response.status === 403) {
+        const errorData = await response.json();
+        console.error('Vous avez été bloqué par ce utilisateur');
+        alert('Vous avez été bloqué par cet utilisateur');
       } else {
         console.error('Erreur lors de la mise à jour du like');
       }

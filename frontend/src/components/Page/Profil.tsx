@@ -1,6 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import Post from "../ui/FilActu/post";
-import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser } from "../../lib/api";
+import PostWrapper from "../ui/Posts/PostWrapper";
+import ProfileEdit from "../ui/Profile/ProfileEdit";
+import BlockButton from "../ui/Profile/BlockButton";
+import BlockedUsersList from "../ui/Profile/BlockedUsersList";
+import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser, isBlockingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
 
 // Default banner image asset
@@ -17,6 +20,10 @@ export default function Profil() {
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
+  const [showProfileEdit, setShowProfileEdit] = useState(false);
+  const [isBlocking, setIsBlocking] = useState<boolean | null>(null);
+  const [isLoadingBlockStatus, setIsLoadingBlockStatus] = useState(false);
+  const [blockedUsersRefreshTrigger, setBlockedUsersRefreshTrigger] = useState(false);
   const navigate = useNavigate();
   const observerTarget = useRef<HTMLDivElement>(null);
 
@@ -83,6 +90,29 @@ export default function Profil() {
           } catch (err) {
             console.error("Failed to check following status:", err);
           }
+        }
+
+        // Check if current user is blocking this user
+        if (userId && currentUser && parseInt(userId) !== currentUser.id) {
+          setIsLoadingBlockStatus(true);
+          try {
+            const blocking = await isBlockingUser(parseInt(userId));
+            if (isMounted) {
+              setIsBlocking(blocking);
+            }
+          } catch (err) {
+            console.error("Failed to check blocking status:", err);
+            if (isMounted) {
+              setIsBlocking(false);
+            }
+          } finally {
+            if (isMounted) {
+              setIsLoadingBlockStatus(false);
+            }
+          }
+        } else {
+          setIsBlocking(null);
+          setIsLoadingBlockStatus(false);
         }
       } catch (error) {
         console.error("Network error:", error);
@@ -218,6 +248,14 @@ export default function Profil() {
     }
   };
 
+  const handleBlockChange = (newBlockingState: boolean) => {
+    setIsBlocking(newBlockingState);
+    // Trigger refresh of blocked users list
+    if (newBlockingState) {
+      setBlockedUsersRefreshTrigger(!blockedUsersRefreshTrigger);
+    }
+  };
+
   const isOtherUserProfile = userId && currentUser && parseInt(userId) !== currentUser.id;
 
   if (currentUser === undefined || displayedUser === undefined) {
@@ -286,20 +324,50 @@ export default function Profil() {
               <p className="text-sm text-white/60">@{userHandle}</p>
             </hgroup>
             
-            {/* Follow button for other user profiles */}
-            {isOtherUserProfile && (
-              <button
-                onClick={handleFollowToggle}
-                disabled={isLoadingFollow}
-                className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                  isFollowing
-                    ? "border border-purple-500 text-purple-400 hover:bg-purple-500/10"
-                    : "bg-purple-500 text-white hover:bg-purple-600"
-                } disabled:opacity-60`}
-              >
-                {isLoadingFollow ? "..." : isFollowing ? "Ne plus suivre" : "Suivre"}
-              </button>
-            )}
+            <div className="flex gap-2">
+              {/* Edit profile button for current user */}
+              {!isOtherUserProfile && (
+                <button
+                  onClick={() => setShowProfileEdit(true)}
+                  className="px-6 py-2 rounded-full font-semibold transition-all bg-purple-500 text-white hover:bg-purple-600"
+                >
+                  Modifier
+                </button>
+              )}
+
+              {/* Follow/Block buttons for other user profiles */}
+              {isOtherUserProfile && (
+                <>
+                  <button
+                    onClick={handleFollowToggle}
+                    disabled={isLoadingFollow}
+                    className={`px-6 py-2 rounded-full font-semibold transition-all ${
+                      isFollowing
+                        ? "border border-purple-500 text-purple-400 hover:bg-purple-500/10"
+                        : "bg-purple-500 text-white hover:bg-purple-600"
+                    } disabled:opacity-60`}
+                  >
+                    {isLoadingFollow ? "..." : isFollowing ? "Ne plus suivre" : "Suivre"}
+                  </button>
+                  {isBlocking !== null && (
+                    <BlockButton
+                      userId={displayedUser.id}
+                      isBlocking={isBlocking}
+                      onBlockChange={handleBlockChange}
+                      disabled={isLoadingBlockStatus}
+                    />
+                  )}
+                  {isLoadingBlockStatus && (
+                    <button
+                      disabled
+                      className="px-4 py-2 rounded font-medium text-sm bg-gray-400 text-gray-600 opacity-50"
+                    >
+                      ...
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </div>
 
           {/* Bio */}
@@ -353,6 +421,9 @@ export default function Profil() {
           </dl>
         </section>
 
+        {/* Blocked users list - only for current user's profile */}
+        {!isOtherUserProfile && <BlockedUsersList refreshTrigger={blockedUsersRefreshTrigger} />}
+
         {/* Posts tab */}
         <nav className="border-b border-primary/20 px-6">
           <ul className="flex" role="tablist">
@@ -373,7 +444,7 @@ export default function Profil() {
           {posts.length > 0 ? (
             posts.map((post) => (
               <li key={post.id} className="list-none border-b border-primary/20">
-                <Post
+                <PostWrapper
                   postId={post.id}
                   authorName={post.author?.name || "Utilisateur"}
                   authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
@@ -381,13 +452,20 @@ export default function Profil() {
                   authorAvatar={post.author?.profilePhoto || post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                   timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                   content={post.content || ""}
-                  commentCount={0}
+                  mediaUrl={post.mediaUrl}
+                  commentCount={post.replies || 0}
                   shareCount={0}
+                  isCurrentUserAuthor={currentUser && post.author?.id === currentUser.id}
                   onDelete={
                     currentUser && post.author?.id === currentUser.id
                       ? () => handleDeletePost(post.id)
                       : undefined
                   }
+                  onPostUpdated={(updatedPost) => {
+                    setPosts((prev) =>
+                      prev.map((p) => (p.id === updatedPost.id ? updatedPost : p))
+                    );
+                  }}
                 />
               </li>
             ))
@@ -411,6 +489,18 @@ export default function Profil() {
           )}
         </div>
       </article>
+
+      {/* Profile Edit Modal */}
+      {showProfileEdit && (
+        <ProfileEdit
+          user={currentUser}
+          onClose={() => setShowProfileEdit(false)}
+          onSave={(updatedUser) => {
+            setCurrentUser(updatedUser);
+            setDisplayedUser(updatedUser);
+          }}
+        />
+      )}
     </main>
   );
 }

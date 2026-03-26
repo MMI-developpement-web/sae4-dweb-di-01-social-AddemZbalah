@@ -223,7 +223,7 @@ interface PostProps {
   authorId?: number;
   authorAvatar: string;
   timestamp: string;
-  content: string;
+  content: string | React.ReactNode;
   commentCount?: number;
   shareCount?: number;
   isAuthorBlocked?: boolean;

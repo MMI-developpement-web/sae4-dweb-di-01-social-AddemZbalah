@@ -9,6 +9,7 @@ use EasyCorp\Bundle\EasyAdminBundle\Field\TextField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\EmailField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\ChoiceField;
 use EasyCorp\Bundle\EasyAdminBundle\Field\BooleanField;
+use EasyCorp\Bundle\EasyAdminBundle\Field\AssociationField;
 
 class UserCrudController extends AbstractCrudController
 {
@@ -31,6 +32,8 @@ class UserCrudController extends AbstractCrudController
                     'Administrateur' => 'ROLE_ADMIN',
                 ]),
             BooleanField::new('isBlocked', 'Compte bloqué'),
+            AssociationField::new('blockedUsers', 'Utilisateurs bloqués')
+                ->hideOnForm(),
         ];
     }
 }

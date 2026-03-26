@@ -18,15 +18,15 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?int $id = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?string $name = null;
 
     #[ORM\Column(length: 255)]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?string $mail = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -85,12 +85,19 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\OneToMany(targetEntity: Follow::class, mappedBy: 'following', cascade: ['remove'])]
     private Collection $followers;
 
+    /**
+     * @var Collection<int, User>
+     */
+    #[ORM\ManyToMany(targetEntity: User::class)]
+    private Collection $blockedUsers;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
         $this->likes = new ArrayCollection();
         $this->following = new ArrayCollection();
         $this->followers = new ArrayCollection();
+        $this->blockedUsers = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -366,5 +373,34 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->website = $website;
 
         return $this;
+    }
+
+    /**
+     * @return Collection<int, User>
+     */
+    public function getBlockedUsers(): Collection
+    {
+        return $this->blockedUsers;
+    }
+
+    public function addBlockedUser(User $user): static
+    {
+        if (!$this->blockedUsers->contains($user)) {
+            $this->blockedUsers->add($user);
+        }
+
+        return $this;
+    }
+
+    public function removeBlockedUser(User $user): static
+    {
+        $this->blockedUsers->removeElement($user);
+
+        return $this;
+    }
+
+    public function isBlockingUser(User $user): bool
+    {
+        return $this->blockedUsers->contains($user);
     }
 }

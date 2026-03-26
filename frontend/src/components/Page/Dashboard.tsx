@@ -4,6 +4,7 @@ import { NavLink } from "react-router-dom";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 import DashboardDetails from "../ui/Dashboard/dashboardDetails";
+import PostModeration from "../ui/Admin/PostModeration";
 
 // ── Sidebar nav ──────────────────────────────────────────────────────────────
 
@@ -184,6 +185,13 @@ export default function Dashboard() {
                 value={card.value}
               />
             ))}
+          </section>
+
+          {/* Content Moderation Section */}
+          <section className="mt-12 lg:mt-16" aria-label="Modération du contenu">
+            <div className="bg-primary/10 rounded-lg p-6 border border-primary/30">
+              <PostModeration />
+            </div>
           </section>
         </main>
       </div>
