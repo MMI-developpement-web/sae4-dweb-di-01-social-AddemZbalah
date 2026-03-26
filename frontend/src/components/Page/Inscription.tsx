@@ -26,8 +26,9 @@ export default function Inscription() {
       try {
         const data = await register({ username, email, password });
 
-        if (data && data.token) {
+        if (data && data.message) {
           console.log("Inscription réussie:", data);
+          alert("Inscription réussie! Veuillez confirmer votre email.");
           // Rediriger vers la connexion après succès
           navigate("/connexion");
         } else {
