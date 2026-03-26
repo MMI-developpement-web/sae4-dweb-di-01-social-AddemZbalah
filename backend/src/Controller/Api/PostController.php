@@ -30,6 +30,33 @@ class PostController extends AbstractController
     }
 
     /**
+     * Helper method to format post data with author info
+     */
+    private function formatPostData(Post $post): array
+    {
+        $author = $post->getAuthor();
+        $profilePhoto = $author->getProfilePhoto();
+        // Use profile photo from DB if available, otherwise use dicebear API
+        $avatar = $profilePhoto ?: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($author->getName());
+        
+        return [
+            'id' => $post->getId(),
+            'content' => $post->getContent(),
+            'createdAt' => $post->getCreatedAt()?->format('c'),
+            'author' => [
+                'id' => $author->getId(),
+                'name' => $author->getName(),
+                'mail' => $author->getMail(),
+                'avatar' => $avatar,
+                'profilePhoto' => $profilePhoto,
+                'bannerImage' => $author->getBannerImage(),
+            ],
+            'isAuthorBlocked' => $author->getIsBlocked(),
+            'likes' => count($post->getLikes()),
+        ];
+    }
+
+    /**
      * List all posts in reverse chronological order (paginated)
      * GET /api/posts?page=1&per_page=20&author_id=1
      * Public endpoint - no authentication required to view posts
@@ -48,21 +75,7 @@ class PostController extends AbstractController
         $posts = $this->postRepository->findLatest($perPage, $offset, $authorId);
         
         // Transform posts to include isAuthorBlocked info instead of filtering them out
-        $postsData = array_map(function(Post $post) {
-            return [
-                'id' => $post->getId(),
-                'content' => $post->getContent(),
-                'createdAt' => $post->getCreatedAt()?->format('c'),
-                'author' => [
-                    'id' => $post->getAuthor()->getId(),
-                    'name' => $post->getAuthor()->getName(),
-                    'mail' => $post->getAuthor()->getMail(),
-                    'avatar' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($post->getAuthor()->getName()),
-                ],
-                'isAuthorBlocked' => $post->getAuthor()->getIsBlocked(),
-                'likes' => count($post->getLikes()),
-            ];
-        }, $posts);
+        $postsData = array_map([$this, 'formatPostData'], $posts);
         
         $total = $this->postRepository->count($authorId ? ['author' => $authorId] : []);
 
@@ -228,21 +241,7 @@ class PostController extends AbstractController
         $posts = $this->postRepository->findFeed($followingUsers, $perPage, $offset);
         
         // Transform posts to include isAuthorBlocked info instead of filtering them out
-        $postsData = array_map(function(Post $post) {
-            return [
-                'id' => $post->getId(),
-                'content' => $post->getContent(),
-                'createdAt' => $post->getCreatedAt()?->format('c'),
-                'author' => [
-                    'id' => $post->getAuthor()->getId(),
-                    'name' => $post->getAuthor()->getName(),
-                    'mail' => $post->getAuthor()->getMail(),
-                    'avatar' => 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($post->getAuthor()->getName()),
-                ],
-                'isAuthorBlocked' => $post->getAuthor()->getIsBlocked(),
-                'likes' => count($post->getLikes()),
-            ];
-        }, $posts);
+        $postsData = array_map([$this, 'formatPostData'], $posts);
         
         $total = $this->postRepository->countFeed($followingUsers);
 

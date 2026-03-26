@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Post from "../ui/FilActu/post";
 import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
@@ -14,7 +14,11 @@ export default function Profil() {
   const [displayedUser, setDisplayedUser] = useState<any>(undefined);
   const [isFollowing, setIsFollowing] = useState(false);
   const [isLoadingFollow, setIsLoadingFollow] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const navigate = useNavigate();
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   // Fetch current user
   useEffect(() => {
@@ -112,6 +116,9 @@ export default function Profil() {
       setPosts(list);
       const count = (data && data.pagination && typeof data.pagination.total_items === 'number') ? data.pagination.total_items : list.length;
       setPostsCount(count);
+      setCurrentPage(1);
+      setHasMore((count) > 20);
+      console.log("Initial profile load - Total items:", count, "Posts loaded:", list.length);
       try { localStorage.setItem(`postsCount-${userIdToFetch}`, String(count)); } catch(e) {}
     }).catch(error => {
       console.error("Error fetching posts:", error);
@@ -119,7 +126,54 @@ export default function Profil() {
     });
   }, [displayedUser?.id]);
 
-  // Note: postsCount removed — display uses posts.length to avoid flapping
+  // Infinite scroll observer
+  useEffect(() => {
+    if (!displayedUser?.id || !observerTarget.current) return;
+
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          console.log("Loading more profile posts - Page:", currentPage + 1);
+          setIsLoadingMore(true);
+          const nextPage = currentPage + 1;
+          try {
+            const data = await getPosts(nextPage, displayedUser.id);
+            const newPosts = data.posts || [];
+            if (newPosts.length > 0) {
+              setPosts((prev) => [...prev, ...newPosts]);
+              setCurrentPage(nextPage);
+              const totalItems = data.pagination?.total_items || 0;
+              setHasMore((nextPage * 20) < totalItems);
+              console.log("Loaded", newPosts.length, "posts. Total items:", totalItems);
+            } else {
+              setHasMore(false);
+              console.log("No more posts to load");
+            }
+          } catch (error) {
+            console.error("Error loading more posts:", error);
+          } finally {
+            setIsLoadingMore(false);
+          }
+        }
+      },
+      {
+        threshold: 0.01,
+        rootMargin: "300px"
+      }
+    );
+
+    const target = observerTarget.current;
+    if (target) {
+      observer.observe(target);
+      console.log("Observer attached to profile target");
+    }
+
+    return () => {
+      if (target) {
+        observer.unobserve(target);
+      }
+    };
+  }, [currentPage, hasMore, isLoadingMore, displayedUser?.id]);
 
   const handleDeletePost = async (postId: number) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce tweet ?")) {
@@ -184,7 +238,7 @@ export default function Profil() {
 
   return (
     <main className="flex h-screen w-full items-start overflow-hidden bg-fil">
-      <article className="flex w-full flex-col overflow-y-auto scrollbar-hide" aria-label="Profil">
+      <article className="flex w-full h-screen flex-col overflow-y-auto scrollbar-hide" aria-label="Profil">
         {/* Header avec back, titre et icône user */}
         <header className="sticky top-0 z-20 bg-fil/95 backdrop-blur flex items-center justify-center px-4 py-3 border-b border-primary/20">
           <button 
@@ -324,7 +378,7 @@ export default function Profil() {
                   authorName={post.author?.name || "Utilisateur"}
                   authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
                   authorId={post.author?.id}
-                  authorAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
+                  authorAvatar={post.author?.profilePhoto || post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                   timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                   content={post.content || ""}
                   commentCount={0}
@@ -343,6 +397,19 @@ export default function Profil() {
             </li>
           )}
         </ul>
+
+        {/* Infinite scroll target */}
+        <div ref={observerTarget} className="py-8 text-center">
+          {isLoadingMore && (
+            <div className="flex items-center justify-center gap-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-600 border-t-secondary" />
+              <span className="text-secondary/70">Chargement...</span>
+            </div>
+          )}
+          {!isLoadingMore && !hasMore && posts.length > 0 && (
+            <p className="text-xs text-secondary/50">Fin des posts</p>
+          )}
+        </div>
       </article>
     </main>
   );

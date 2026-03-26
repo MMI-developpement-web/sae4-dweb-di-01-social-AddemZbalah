@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import Post from "../ui/FilActu/post";
 import Nav from "../ui/Navbar/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
@@ -24,15 +24,19 @@ const SUGGESTED_USERS: SuggestionUser[] = [
 
 export default function Fil() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [posts, setPosts] = useState<any[]>([]); // Nouvel état pour les posts du backend
+  const [posts, setPosts] = useState<any[]>([]);
   const [currentUser, setCurrentUser] = useState<any>(undefined);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(
     localStorage.getItem("autoRefreshInterval") 
       ? parseInt(localStorage.getItem("autoRefreshInterval")!) 
       : null
   );
   const navId = useId();
+  const observerTarget = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     async function fetchUser() {
@@ -42,7 +46,6 @@ export default function Fil() {
           setCurrentUser(user);
         } else {
           setCurrentUser(null);
-          // Optional: navigate("/connexion"); if we strictly require login here
         }
       } catch (err) {
         console.error("Failed to load user:", err);
@@ -52,26 +55,86 @@ export default function Fil() {
     fetchUser();
   }, []);
 
-  const fetchPosts = async () => {
+  const fetchPosts = async (page: number = 1) => {
     try {
-      const data = await getPosts();
-      // L'API renvoie { posts: [...], pagination: {...} }
-      setPosts(data.posts || []);
+      const data = await getPosts(page);
+      return data;
     } catch (error) {
       console.error("Erreur réseau :", error);
+      return { posts: [], pagination: {} };
     }
   };
 
+  // Initial load
   useEffect(() => {
-    fetchPosts();
+    const loadInitialPosts = async () => {
+      const data = await fetchPosts(1);
+      const posts = data.posts || [];
+      const totalItems = data.pagination?.total_items || 0;
+      setPosts(posts);
+      setCurrentPage(1);
+      setHasMore(totalItems > 20);
+      console.log("Initial load - Total items:", totalItems, "Posts loaded:", posts.length);
+    };
+    loadInitialPosts();
   }, []);
+
+  // Load more posts (infinite scroll)
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      async (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore && !isRefreshing) {
+          console.log("Loading more posts - Page:", currentPage + 1);
+          setIsLoadingMore(true);
+          const nextPage = currentPage + 1;
+          try {
+            const data = await fetchPosts(nextPage);
+            const newPosts = data.posts || [];
+            if (newPosts.length > 0) {
+              setPosts((prev) => [...prev, ...newPosts]);
+              setCurrentPage(nextPage);
+              const totalItems = data.pagination?.total_items || 0;
+              setHasMore((nextPage * 20) < totalItems);
+              console.log("Loaded", newPosts.length, "posts. Total items:", totalItems);
+            } else {
+              setHasMore(false);
+              console.log("No more posts to load");
+            }
+          } catch (error) {
+            console.error("Error loading more posts:", error);
+          } finally {
+            setIsLoadingMore(false);
+          }
+        }
+      },
+      {
+        threshold: 0.01,
+        rootMargin: "300px"
+      }
+    );
+
+    const target = observerTarget.current;
+    if (target) {
+      observer.observe(target);
+      console.log("Observer attached to target");
+    }
+
+    return () => {
+      if (target) {
+        observer.unobserve(target);
+      }
+    };
+  }, [currentPage, hasMore, isLoadingMore, isRefreshing]);
 
   // Rafraîchissement automatique optionnel
   useEffect(() => {
     if (!autoRefreshInterval) return;
 
-    const interval = setInterval(() => {
-      fetchPosts();
+    const interval = setInterval(async () => {
+      const data = await fetchPosts(1);
+      setPosts(data.posts || []);
+      setCurrentPage(1);
+      setHasMore((data.pagination?.total_items || 0) > 20);
     }, autoRefreshInterval * 1000);
 
     return () => clearInterval(interval);
@@ -79,7 +142,10 @@ export default function Fil() {
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await fetchPosts();
+    const data = await fetchPosts(1);
+    setPosts(data.posts || []);
+    setCurrentPage(1);
+    setHasMore((data.pagination?.total_items || 0) > 20);
     setIsRefreshing(false);
   };
 
@@ -177,7 +243,7 @@ export default function Fil() {
 
         {/* Colonne centrale — fil de posts */}
         <section
-          className="flex w-full max-w-2xl shrink-0 flex-col overflow-y-auto scrollbar-hide mt-24 border-x border-t border-primary/20 lg:mt-0 lg:max-w-4xl lg:border-t-0"
+          className="flex w-full h-screen max-w-2xl shrink-0 flex-col overflow-y-auto scrollbar-hide mt-24 border-x border-t border-primary/20 lg:mt-0 lg:max-w-4xl lg:border-t-0"
           aria-label="Posts"
         >
           {/* Bouton de rafraîchissement et menu des options */}
@@ -235,10 +301,10 @@ export default function Fil() {
                     authorName={post.author?.name || "Utilisateur"}
                     authorHandle={post.author?.name ? post.author.name.toLowerCase().replace(/\s/g, '') : "user"}
                     authorId={post.author?.id}
-                    authorAvatar={`https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
+                    authorAvatar={post.author?.profilePhoto || post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                     timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                     content={post.content || ""}
-                    commentCount={0} // À implémenter plus tard côté backend
+                    commentCount={0}
                     shareCount={0}
                     onComment={() => {}}
                     isAuthorBlocked={post.isAuthorBlocked || false}
@@ -256,9 +322,18 @@ export default function Fil() {
             )}
           </ul>
 
-          <footer className="border-t border-primary/20 px-4 py-6 text-center">
-            <p className="text-xs text-secondary/50">Fin du fil</p>
-          </footer>
+          {/* Infinite scroll target */}
+          <div ref={observerTarget} className="py-8 text-center">
+            {isLoadingMore && (
+              <div className="flex items-center justify-center gap-2">
+                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-600 border-t-secondary" />
+                <span className="text-secondary/70">Chargement...</span>
+              </div>
+            )}
+            {!isLoadingMore && !hasMore && posts.length > 0 && (
+              <p className="text-xs text-secondary/50">Fin du fil</p>
+            )}
+          </div>
         </section>
 
         {/* Colonne droite — desktop uniquement */}
