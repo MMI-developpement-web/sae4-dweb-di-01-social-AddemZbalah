@@ -2,8 +2,15 @@
     RewriteEngine On
     RewriteBase /~zbalah3/sae4-dweb-di-01-social-AddemZbalah/Cycle-B/frontend/
     
-    # Redirige tout vers dist/index.html sauf les fichiers/dossiers existants
+    # N'ignore pas les vrai fichiers et dossiers
     RewriteCond %{REQUEST_FILENAME} !-f
     RewriteCond %{REQUEST_FILENAME} !-d
+    
+    # N'ignore pas les chemins src/, public/ ou dist/
+    RewriteCond %{REQUEST_URI} !^/src/
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteCond %{REQUEST_URI} !^/dist/
+    
+    # Redirige vers dist/index.html
     RewriteRule ^(.*)$ dist/index.html [L]
 </IfModule>
