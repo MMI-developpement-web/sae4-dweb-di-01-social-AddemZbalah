@@ -16,6 +16,7 @@ interface PostWrapperProps {
   commentCount?: number;
   shareCount?: number;
   isAuthorBlocked?: boolean;
+  isCensored?: boolean;
   isCurrentUserAuthor?: boolean;
   onComment?: () => void;
   onShare?: () => void;
@@ -35,6 +36,7 @@ export default function PostWrapper({
   commentCount = 0,
   shareCount = 0,
   isAuthorBlocked = false,
+  isCensored = false,
   isCurrentUserAuthor = false,
   onComment,
   onShare,
@@ -63,7 +65,10 @@ export default function PostWrapper({
           setLoadingReplies(true);
           const data = await getReplies(postId);
           setReplies(data || []);
-          setReplyCount(data?.length || 0);
+          // Seulement mettre à jour le compteur si on a des données
+          if (data && data.length > 0) {
+            setReplyCount(data.length);
+          }
         } catch (error) {
           console.error('Error loading replies:', error);
         } finally {
@@ -101,7 +106,12 @@ export default function PostWrapper({
         authorAvatar={authorAvatar}
         timestamp={timestamp}
         content={
-          currentMediaUrl ? (
+          isCensored ? (
+            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+              <p className="text-red-700 font-semibold">🚫 Post censuré</p>
+              <p className="text-red-600 text-sm mt-2">{currentContent}</p>
+            </div>
+          ) : currentMediaUrl ? (
             <div className="space-y-2">
               <p>{currentContent}</p>
               {currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
@@ -114,17 +124,20 @@ export default function PostWrapper({
             currentContent
           )
         }
-        commentCount={replyCount}
-        shareCount={shareCount}
+        commentCount={isCensored ? 0 : replyCount}
+        shareCount={isCensored ? 0 : shareCount}
         isAuthorBlocked={isAuthorBlocked}
+        isCensored={isCensored}
         onComment={() => {
-          setShowReplies(!showReplies);
-          onComment?.();
+          if (!isCensored) {
+            setShowReplies(!showReplies);
+            onComment?.();
+          }
         }}
-        onShare={onShare}
+        onShare={isCensored ? undefined : onShare}
         onDelete={onDelete}
         onMoreActions={() => {
-          if (isCurrentUserAuthor) {
+          if (isCurrentUserAuthor && !isCensored) {
             setShowEditModal(true);
           }
         }}
@@ -140,7 +153,7 @@ export default function PostWrapper({
         />
       )}
 
-      {showReplies && (
+      {showReplies && !isCensored && (
         <div className="px-4 py-2 ml-2 border-l-2 border-gray-200">
           {/* Reply Form */}
           <ReplyForm postId={postId} onReplyAdded={handleReplyAdded} />
@@ -152,9 +165,12 @@ export default function PostWrapper({
             ) : replies.length > 0 ? (
               replies.map((reply: any) => (
                 <div key={reply.id} className="pl-4 pt-3 border-l border-gray-200">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-bold text-sm">{reply.author?.name || 'Utilisateur'}</span>
-                    <span className="text-gray-500 text-xs">@{reply.author?.email?.split('@')[0] || 'user'}</span>
+                  <div className="flex items-center gap-2 mb-2">
+                    {reply.author?.profilePhoto && (
+                      <img src={reply.author.profilePhoto} alt="avatar" className="w-6 h-6 rounded-full" />
+                    )}
+                    <span className="font-bold text-sm text-white">{reply.author?.name || 'Utilisateur'}</span>
+                    <span className="text-gray-500 text-xs">@{reply.author?.mail?.split('@')[0] || 'utilisateur'}</span>
                     <span className="text-gray-400 text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
                   </div>
                   <p className="text-white text-sm">{reply.textContent}</p>

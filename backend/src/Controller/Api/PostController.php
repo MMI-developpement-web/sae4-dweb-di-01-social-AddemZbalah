@@ -42,6 +42,28 @@ class PostController extends AbstractController
         // Use profile photo from DB if available, otherwise use dicebear API
         $avatar = $profilePhoto ?: 'https://api.dicebear.com/7.x/avataaars/svg?seed=' . urlencode($author->getName());
         
+        // If post is censored, show placeholder content and hide likes/replies
+        if ($post->isCensored()) {
+            return [
+                'id' => $post->getId(),
+                'content' => 'Ce message enfreint les conditions d\'utilisation de la plateforme',
+                'mediaUrl' => null,
+                'createdAt' => $post->getCreatedAt()?->format('c'),
+                'author' => [
+                    'id' => $author->getId(),
+                    'name' => $author->getName(),
+                    'mail' => $author->getMail(),
+                    'avatar' => $avatar,
+                    'profilePhoto' => $profilePhoto,
+                    'bannerImage' => $author->getBannerImage(),
+                ],
+                'isAuthorBlocked' => $author->getIsBlocked(),
+                'isCensored' => true,
+                'likes' => 0,
+                'replies' => 0,
+            ];
+        }
+        
         return [
             'id' => $post->getId(),
             'content' => $post->getContent(),
@@ -56,6 +78,7 @@ class PostController extends AbstractController
                 'bannerImage' => $author->getBannerImage(),
             ],
             'isAuthorBlocked' => $author->getIsBlocked(),
+            'isCensored' => false,
             'likes' => count($post->getLikes()),
             'replies' => count($post->getReplies()),
         ];
@@ -155,6 +178,11 @@ class PostController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function like(Post $post): JsonResponse
     {
+        // Check if post is censored
+        if ($post->isCensored()) {
+            return $this->json(['error' => 'Ce post a été censuré'], 403);
+        }
+
         $user = $this->getUser();
         $postAuthor = $post->getAuthor();
         
@@ -313,6 +341,11 @@ class PostController extends AbstractController
     #[IsGranted('ROLE_USER')]
     public function createReply(Post $post, Request $request): JsonResponse
     {
+        // Check if post is censored
+        if ($post->isCensored()) {
+            return $this->json(['error' => 'Vous ne pouvez pas répondre à un post censuré'], 403);
+        }
+
         $user = $this->getUser();
         $postAuthor = $post->getAuthor();
         

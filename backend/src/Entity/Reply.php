@@ -13,15 +13,15 @@ class Reply
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?int $id = null;
 
     #[ORM\Column(type: Types::TEXT)]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?string $textContent = null;
 
     #[ORM\Column]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?\DateTimeImmutable $createdAt = null;
 
     #[ORM\ManyToOne(inversedBy: 'replies')]

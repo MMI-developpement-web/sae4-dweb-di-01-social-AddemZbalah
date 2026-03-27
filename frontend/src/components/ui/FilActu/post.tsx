@@ -227,6 +227,7 @@ interface PostProps {
   commentCount?: number;
   shareCount?: number;
   isAuthorBlocked?: boolean;
+  isCensored?: boolean;
   onComment?: () => void;
   onShare?: () => void;
   onMoreActions?: () => void;
@@ -244,6 +245,7 @@ export default function Post({
   commentCount = 0,
   shareCount = 0,
   isAuthorBlocked = false,
+  isCensored = false,
   onComment,
   onShare,
   onMoreActions,
@@ -331,33 +333,35 @@ export default function Post({
       </section>
 
     
-      <section
-        className={cn(actionsGroupVariants())}
-        role="group"
-        aria-label="Actions post"
-      >
-        <ActionButton
-          icon={<MessageCircleIcon />}
-          count={commentCount}
-          ariaLabel={`${commentCount} commentaires`}
-          onClick={onComment}
-          size="md"
-        />
-        <ActionButton
-          icon={<RepeatIcon />}
-          count={shareCount}
-          ariaLabel={`${shareCount} partages`}
-          onClick={onShare}
-          size="md"
-        />
-        <LikeButton postId={postId} size="md" />
-        <ActionButton
-          icon={<ShareIcon />}
-          ariaLabel="Partager"
-          onClick={onMoreActions}
-          size="md"
-        />
-      </section>
+      {!isCensored && (
+        <section
+          className={cn(actionsGroupVariants())}
+          role="group"
+          aria-label="Actions post"
+        >
+          <ActionButton
+            icon={<MessageCircleIcon />}
+            count={commentCount}
+            ariaLabel={`${commentCount} commentaires`}
+            onClick={onComment}
+            size="md"
+          />
+          <ActionButton
+            icon={<RepeatIcon />}
+            count={shareCount}
+            ariaLabel={`${shareCount} partages`}
+            onClick={onShare}
+            size="md"
+          />
+          <LikeButton postId={postId} size="md" />
+          <ActionButton
+            icon={<ShareIcon />}
+            ariaLabel="Partager"
+            onClick={onMoreActions}
+            size="md"
+          />
+        </section>
+      )}
     </article>
   );
 }

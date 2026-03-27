@@ -42,6 +42,11 @@ class UserController extends AbstractController
             return $this->json(['error' => 'Cannot follow yourself'], Response::HTTP_BAD_REQUEST);
         }
 
+        // Check if current user is blocking this user
+        if ($currentUser->isBlockingUser($user)) {
+            return $this->json(['error' => 'You have blocked this user'], Response::HTTP_FORBIDDEN);
+        }
+
         // Check if already following
         if ($this->followRepository->isFollowing($currentUser, $user)) {
             return $this->json(['error' => 'Already following this user'], Response::HTTP_BAD_REQUEST);
@@ -238,6 +243,12 @@ class UserController extends AbstractController
             $this->em->remove($follow);
         }
 
+        // Also unfollow if the blocked user was following current user
+        $reverseFollow = $this->followRepository->getFollow($userToBlock, $currentUser);
+        if ($reverseFollow) {
+            $this->em->remove($reverseFollow);
+        }
+
         $this->em->flush();
 
         return $this->json(['success' => true, 'message' => 'User blocked'], Response::HTTP_CREATED);
@@ -288,13 +299,14 @@ class UserController extends AbstractController
 
         $blockedUsers = $currentUser->getBlockedUsers();
         
-        $data = $blockedUsers->map(function (User $user) {
-            return [
+        $data = [];
+        foreach ($blockedUsers as $user) {
+            $data[] = [
                 'id' => $user->getId(),
                 'name' => $user->getName(),
                 'mail' => $user->getMail(),
             ];
-        })->toArray();
+        }
 
         return $this->json($data);
     }

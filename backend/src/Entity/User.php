@@ -43,7 +43,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     private ?string $bio = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
-    #[Groups(['default'])]
+    #[Groups(['default', 'reply:read'])]
     private ?string $profilePhoto = null;
 
     #[ORM\Column(type: Types::TEXT, nullable: true)]
@@ -89,6 +89,9 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @var Collection<int, User>
      */
     #[ORM\ManyToMany(targetEntity: User::class)]
+    #[ORM\JoinTable(name: 'user_user')]
+    #[ORM\JoinColumn(name: 'user_source', referencedColumnName: 'id', onDelete: 'CASCADE')]
+    #[ORM\InverseJoinColumn(name: 'user_target', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Collection $blockedUsers;
 
     public function __construct()

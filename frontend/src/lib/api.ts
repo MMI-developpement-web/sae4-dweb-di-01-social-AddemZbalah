@@ -248,10 +248,22 @@ export async function followUser(userId: number): Promise<boolean> {
             method: 'POST',
             headers: getAuthHeaders(),
         });
-        return res.ok;
+        if (!res.ok) {
+            if (res.status === 403) {
+                const errorData = await res.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Vous avez bloqué cet utilisateur');
+            }
+            const errorData = await res.json().catch(() => ({}));
+            throw new Error(errorData.error || 'Erreur lors du suivi');
+        }
+        return true;
     } catch (err) {
+        if (err instanceof Error) {
+            console.error('Follow user error:', err.message);
+            throw err;
+        }
         console.error('Follow user error:', err);
-        return false;
+        throw new Error('Erreur lors du suivi');
     }
 }
 
@@ -443,7 +455,9 @@ export async function createReply(postId: number, textContent: string): Promise<
 // Get replies for a post
 export async function getReplies(postId: number): Promise<any[]> {
     try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/replies`);
+        const res = await fetch(`${API_BASE}/posts/${postId}/replies`, {
+            headers: getAuthHeaders(),
+        });
         if (!res.ok) return [];
         return await res.json();
     } catch (err) {

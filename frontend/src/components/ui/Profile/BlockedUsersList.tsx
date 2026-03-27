@@ -13,23 +13,30 @@ interface BlockedUsersListProps {
 
 export default function BlockedUsersList({ refreshTrigger = false }: BlockedUsersListProps) {
   const [blockedUsers, setBlockedUsers] = useState<BlockedUser[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [unblockingId, setUnblockingId] = useState<number | null>(null);
 
-  useEffect(() => {
-    const loadBlockedUsers = async () => {
-      try {
-        setIsLoading(true);
-        const users = await getBlockedUsers();
-        setBlockedUsers(users || []);
-      } catch (error) {
-        console.error('Failed to load blocked users:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const loadBlockedUsers = async () => {
+    try {
+      setIsLoading(true);
+      const users = await getBlockedUsers();
+      setBlockedUsers(users || []);
+    } catch (error) {
+      console.error('Failed to load blocked users:', error);
+      setBlockedUsers([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     loadBlockedUsers();
+  }, []);
+
+  useEffect(() => {
+    if (refreshTrigger) {
+      loadBlockedUsers();
+    }
   }, [refreshTrigger]);
 
   const handleUnblock = async (userId: number) => {
@@ -46,7 +53,7 @@ export default function BlockedUsersList({ refreshTrigger = false }: BlockedUser
     }
   };
 
-  if (isLoading) {
+  if (isLoading && blockedUsers.length === 0) {
     return (
       <section className="px-6 py-4 border-b border-primary/20">
         <h3 className="text-lg font-bold text-white mb-4">Utilisateurs bloqués</h3>
@@ -55,30 +62,30 @@ export default function BlockedUsersList({ refreshTrigger = false }: BlockedUser
     );
   }
 
-  if (blockedUsers.length === 0) {
-    return null;
-  }
-
   return (
     <section className="px-6 py-4 border-b border-primary/20">
       <h3 className="text-lg font-bold text-white mb-4">Utilisateurs bloqués ({blockedUsers.length})</h3>
-      <div className="space-y-3">
-        {blockedUsers.map(user => (
-          <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20">
-            <div className="flex-1">
-              <p className="font-semibold text-white">{user.name}</p>
-              <p className="text-xs text-secondary/60">{user.mail}</p>
+      {blockedUsers.length === 0 ? (
+        <p className="text-secondary/60 text-sm">Aucun utilisateur bloqué</p>
+      ) : (
+        <div className="space-y-3">
+          {blockedUsers.map(user => (
+            <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20">
+              <div className="flex-1">
+                <p className="font-semibold text-white">{user.name}</p>
+                <p className="text-xs text-secondary/60">{user.mail}</p>
+              </div>
+              <button
+                onClick={() => handleUnblock(user.id)}
+                disabled={unblockingId === user.id}
+                className="ml-4 px-3 py-1 text-sm rounded bg-gray-500 text-white hover:bg-gray-600 disabled:opacity-50 transition-colors"
+              >
+                {unblockingId === user.id ? '...' : 'Débloquer'}
+              </button>
             </div>
-            <button
-              onClick={() => handleUnblock(user.id)}
-              disabled={unblockingId === user.id}
-              className="ml-4 px-3 py-1 text-sm rounded bg-gray-500 text-white hover:bg-gray-600 disabled:opacity-50 transition-colors"
-            >
-              {unblockingId === user.id ? '...' : 'Débloquer'}
-            </button>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </section>
   );
 }

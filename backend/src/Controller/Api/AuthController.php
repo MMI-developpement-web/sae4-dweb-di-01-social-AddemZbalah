@@ -75,7 +75,7 @@ class AuthController extends AbstractController
         ]);
     }
 
-    #[Route('/api/users/{id}', name: 'api_user_get', methods: ['GET'])]
+    #[Route('/api/users/{id}', name: 'api_user_get', methods: ['GET'], requirements: ['id' => '\d+'])]
     public function getUserById(int $id, UserRepository $userRepository, FollowRepository $followRepository): JsonResponse
     {
         $user = $userRepository->find($id);

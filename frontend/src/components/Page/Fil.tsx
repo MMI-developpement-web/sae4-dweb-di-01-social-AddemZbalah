@@ -307,6 +307,7 @@ export default function Fil() {
                     mediaUrl={post.mediaUrl}
                     commentCount={post.replies || 0}
                     shareCount={0}
+                    isCensored={post.isCensored || false}
                     isCurrentUserAuthor={currentUser && post.author?.id === currentUser.id}
                     isAuthorBlocked={post.isAuthorBlocked || false}
                     onComment={() => {}}

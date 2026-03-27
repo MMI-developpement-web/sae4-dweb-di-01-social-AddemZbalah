@@ -232,12 +232,17 @@ export default function Profil() {
         }
       } else {
         // Follow
-        const success = await followUser(displayedUser.id);
-        if (success) {
-          setIsFollowing(true);
-        } else {
-          console.error("Failed to follow user");
-          alert("Erreur lors du suivi de l'utilisateur");
+        try {
+          const success = await followUser(displayedUser.id);
+          if (success) {
+            setIsFollowing(true);
+          }
+        } catch (error) {
+          if (error instanceof Error) {
+            alert(error.message);
+          } else {
+            alert("Erreur lors du suivi de l'utilisateur");
+          }
         }
       }
     } catch (err) {
@@ -250,6 +255,10 @@ export default function Profil() {
 
   const handleBlockChange = (newBlockingState: boolean) => {
     setIsBlocking(newBlockingState);
+    // If we just blocked someone, unfollow them
+    if (newBlockingState && isFollowing) {
+      setIsFollowing(false);
+    }
     // Trigger refresh of blocked users list
     if (newBlockingState) {
       setBlockedUsersRefreshTrigger(!blockedUsersRefreshTrigger);
@@ -340,12 +349,13 @@ export default function Profil() {
                 <>
                   <button
                     onClick={handleFollowToggle}
-                    disabled={isLoadingFollow}
+                    disabled={isLoadingFollow || isBlocking}
                     className={`px-6 py-2 rounded-full font-semibold transition-all ${
                       isFollowing
                         ? "border border-purple-500 text-purple-400 hover:bg-purple-500/10"
                         : "bg-purple-500 text-white hover:bg-purple-600"
                     } disabled:opacity-60`}
+                    title={isBlocking ? "Vous avez bloqué cet utilisateur" : ""}
                   >
                     {isLoadingFollow ? "..." : isFollowing ? "Ne plus suivre" : "Suivre"}
                   </button>
@@ -455,6 +465,7 @@ export default function Profil() {
                   mediaUrl={post.mediaUrl}
                   commentCount={post.replies || 0}
                   shareCount={0}
+                  isCensored={post.isCensored || false}
                   isCurrentUserAuthor={currentUser && post.author?.id === currentUser.id}
                   onDelete={
                     currentUser && post.author?.id === currentUser.id

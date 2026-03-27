@@ -55,7 +55,7 @@ export default function ReplyForm({ postId, onReplyAdded }: ReplyFormProps) {
         onChange={(e) => setTextContent(e.target.value)}
         maxLength={280}
         placeholder="Votre réponse..."
-        className="w-full p-2 border border-gray-300 rounded text-sm"
+        className="w-full p-2 border border-gray-300 rounded text-sm text-white bg-gray-800"
         rows={2}
       />
       <div className="flex gap-2">
@@ -65,7 +65,7 @@ export default function ReplyForm({ postId, onReplyAdded }: ReplyFormProps) {
             setTextContent('');
           }}
           disabled={isLoading}
-          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+          className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 text-white hover:text-gray-900"
         >
           Annuler
         </button>
