@@ -60,6 +60,16 @@ export async function login(email: string, password: string): Promise<{ token: s
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       console.error('Login failed:', res.status, errorData);
+      
+      // Message explicite si le compte est bloqué
+      if (res.status === 403 && errorData.error?.includes('blocked')) {
+        throw new Error('Votre compte a été bloqué. Veuillez contacter le support.');
+      }
+      
+      if (res.status === 403) {
+        throw new Error('Accès refusé. Votre compte peut être bloqué ou désactivé.');
+      }
+      
       throw new Error(`Login failed: ${res.status}`);
     }
     
