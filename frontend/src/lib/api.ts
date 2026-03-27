@@ -46,7 +46,12 @@ export interface Post {
 }
 
 // Auth
-export async function login(email: string, password: string): Promise<{ token: string } | null> {
+export interface LoginResponse {
+  token?: string;
+  error?: string;
+}
+
+export async function login(email: string, password: string): Promise<LoginResponse> {
   try {
     console.log('Attempt login with email:', email);
     const res = await fetch(`${API_BASE}/login`, {
@@ -60,7 +65,9 @@ export async function login(email: string, password: string): Promise<{ token: s
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
       console.error('Login failed:', res.status, errorData);
-      throw new Error(`Login failed: ${res.status}`);
+      // Return error message from backend if available
+      const errorMessage = errorData.error || `Erreur de connexion: ${res.status}`;
+      return { error: errorMessage };
     }
     
     const data = await res.json();
@@ -69,18 +76,19 @@ export async function login(email: string, password: string): Promise<{ token: s
     // Store token in localStorage for API requests (your code uses "token", not "authToken")
     if (data.token) {
       localStorage.setItem('token', data.token);
-      return data;
+      return { token: data.token };
     }
     
     console.warn('Login response missing token:', data);
-    return null;
+    return { error: 'Token manquant dans la réponse' };
   } catch (err) {
     console.error('Login error:', err);
     if (err instanceof Error) {
       console.error('Error message:', err.message);
       console.error('Error stack:', err.stack);
+      return { error: err.message };
     }
-    return null;
+    return { error: 'Erreur inconnue lors de la connexion' };
   }
 }
 
@@ -293,6 +301,20 @@ export async function isFollowingUser(userId: number): Promise<boolean> {
     } catch (err) {
         console.error('Check following status error:', err);
         return false;
+    }
+}
+
+// Get list of users that a specific user is following
+export async function getFollowingUsers(userId: number): Promise<any[]> {
+    try {
+        const res = await fetch(`${API_BASE}/users/${userId}/following`, {
+            headers: getAuthHeaders(),
+        });
+        if (!res.ok) return [];
+        return await res.json();
+    } catch (err) {
+        console.error('Get following users error:', err);
+        return [];
     }
 }
 

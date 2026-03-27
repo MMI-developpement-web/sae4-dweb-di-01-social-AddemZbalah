@@ -3,6 +3,7 @@ import PostWrapper from "../ui/Posts/PostWrapper";
 import ProfileEdit from "../ui/Profile/ProfileEdit";
 import BlockButton from "../ui/Profile/BlockButton";
 import BlockedUsersList from "../ui/Profile/BlockedUsersList";
+import FollowingUsersList from "../ui/Profile/FollowingUsersList";
 import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser, isBlockingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
 
@@ -433,6 +434,9 @@ export default function Profil() {
 
         {/* Blocked users list - only for current user's profile */}
         {!isOtherUserProfile && <BlockedUsersList refreshTrigger={blockedUsersRefreshTrigger} />}
+
+        {/* Following users list - for current user and other user profiles */}
+        {displayedUser?.id && <FollowingUsersList userId={displayedUser.id} />}
 
         {/* Posts tab */}
         <nav className="border-b border-primary/20 px-6">

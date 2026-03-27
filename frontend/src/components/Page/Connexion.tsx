@@ -7,20 +7,33 @@ import { login } from "../../lib/api";
 export default function Connexion() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setError("");
+    setIsLoading(true);
     console.log('Form submitted with email:', email);
     
-    const result = await login(email, password);
-    console.log('Login result:', result);
-    
-    if (result && result.token) {
-        console.log('Login successful, redirecting to fil');
-        navigate("/fil");
-    } else {
-        alert("Identifiants invalides ou problème de connexion.");
+    try {
+      const result = await login(email, password);
+      console.log('Login result:', result);
+      
+      if (result && result.token) {
+          console.log('Login successful, redirecting to fil');
+          navigate("/fil");
+      } else if (result?.error) {
+          setError(result.error);
+      } else {
+          setError("Identifiants invalides ou problème de connexion.");
+      }
+    } catch (err) {
+      console.error('Login error:', err);
+      setError("Une erreur est survenue. Veuillez réessayer.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -43,6 +56,12 @@ export default function Connexion() {
           <fieldset className="flex w-full flex-col gap-6 py-8">
             <legend className="sr-only">Informations de connexion</legend>
 
+            {error && (
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/50">
+                <p className="text-sm font-medium text-red-400">{error}</p>
+              </div>
+            )}
+
             <div className="flex flex-col gap-2.5">
               <label htmlFor="email" className="sr-only">
                 Adresse e-mail
@@ -59,6 +78,7 @@ export default function Connexion() {
                 autoComplete="email"
                 required
                 aria-label="Adresse e-mail"
+                disabled={isLoading}
               />
             </div>
 
@@ -78,6 +98,7 @@ export default function Connexion() {
                 autoComplete="current-password"
                 required
                 aria-label="Mot de passe"
+                disabled={isLoading}
               />
             </div>
           </fieldset>
@@ -87,8 +108,9 @@ export default function Connexion() {
               variant="lavender"
               size="full"
               type="submit"
+              disabled={isLoading}
             >
-              Se connecter
+              {isLoading ? 'Connexion en cours...' : 'Se connecter'}
             </ConnexionBtn>
 
             <button
