@@ -76,7 +76,7 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 				className="flex w-full cursor-pointer flex-col items-center justify-center gap-3 rounded-2xl border border-dashed border-secondary bg-primary/20 p-8 text-secondary transition-colors duration-300 hover:bg-secondary/10 focus-within:ring-2 focus-within:ring-secondary"
 			>
 				<span className="inline-flex h-12 w-12 items-center justify-center rounded-full bg-secondary p-2">
-					<img src={`${import.meta.env.BASE_URL}assets/Container.svg`} alt="" className="h-full w-full" aria-hidden="true" />
+					<img src={`${import.meta.env.BASE_URL}/assets/Container.svg`} alt="" className="h-full w-full" aria-hidden="true" />
 				</span>
 				<span className="text-lg font-semibold">Photo ou video</span>
 				<input
