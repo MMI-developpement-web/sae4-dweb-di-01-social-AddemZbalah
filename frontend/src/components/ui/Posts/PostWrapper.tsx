@@ -114,7 +114,7 @@ export default function PostWrapper({
           ) : currentMediaUrl ? (
             <div className="space-y-2">
               <p>{currentContent}</p>
-              {currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+              {currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) || currentMediaUrl.match(/^data:video\//i) ? (
                 <video src={currentMediaUrl} controls className="w-full rounded-lg max-h-96 object-cover" />
               ) : (
                 <img src={currentMediaUrl} alt="Post media" className="w-full rounded-lg max-h-96 object-cover" />

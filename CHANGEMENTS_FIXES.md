@@ -4,9 +4,10 @@ Date: 28 Mars 2026
 
 ## 📋 Résumé des fixes
 
-Deux problèmes ont été corrigés:
+Trois problèmes ont été corrigés:
 1. **Compteur sur 200 caractères** - Logique simplifiée
 2. **Upload vidéo** - Support jusqu'à 50MB avec validation de taille
+3. **Affichage vidéo** - Détection correcte des vidéos en base64 dans le fil et la modération
 
 ---
 
@@ -130,11 +131,79 @@ const handleRemoveMedia = () => {
 
 ---
 
-### 3. Docker - Configuration Nginx
+### 3. Frontend - Détection des vidéos en base64
+
+**Fichier:** `frontend/src/components/ui/Posts/PostWrapper.tsx`
+
+#### Change 3.1 - Améliorer la détection du type de média
+
+```typescript
+// AVANT (ligne 119):
+{currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+  <video src={currentMediaUrl} controls className="w-full rounded-lg max-h-96 object-cover" />
+) : (
+  <img src={currentMediaUrl} alt="Post media" className="w-full rounded-lg max-h-96 object-cover" />
+)}
+
+// APRÈS:
+{currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) || currentMediaUrl.match(/^data:video\//i) ? (
+  <video src={currentMediaUrl} controls className="w-full rounded-lg max-h-96 object-cover" />
+) : (
+  <img src={currentMediaUrl} alt="Post media" className="w-full rounded-lg max-h-96 object-cover" />
+)}
+```
+
+**Raison:** Les vidéos en base64 commencent par `data:video/` et ne finissent pas par `.mp4`. La détection doit supporter les deux formats.
+
+---
+
+### 4. Frontend - Détection des vidéos en base64 (Admin)
+
+**Fichier:** `frontend/src/components/ui/Admin/PostModeration.tsx`
+
+#### Change 4.1 - Améliorer la détection dans le pannel de modération
+
+```typescript
+// AVANT (ligne 99):
+{post.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+  <video
+    src={post.mediaUrl}
+    controls
+    className="w-full rounded max-h-64 object-cover"
+  />
+) : (
+  <img
+    src={post.mediaUrl}
+    alt="Post media"
+    className="w-full rounded max-h-64 object-cover"
+  />
+)}
+
+// APRÈS:
+{post.mediaUrl.match(/\.(mp4|webm|ogg)$/i) || post.mediaUrl.match(/^data:video\//i) ? (
+  <video
+    src={post.mediaUrl}
+    controls
+    className="w-full rounded max-h-64 object-cover"
+  />
+) : (
+  <img
+    src={post.mediaUrl}
+    alt="Post media"
+    className="w-full rounded max-h-64 object-cover"
+  />
+)}
+```
+
+**Raison:** Même raison que Change 3.1 - support des vidéos base64.
+
+---
+
+### 5. Docker - Configuration Nginx
 
 **Fichier:** `docker/nginx/default.conf`
 
-#### Change 3.1 - Augmenter la limite d'upload pour le backend
+#### Change 5.1 - Augmenter la limite d'upload pour le backend
 
 ```nginx
 # AVANT:
@@ -220,6 +289,13 @@ docker compose ps
    - Vérifier qu'elle s'affiche en preview avec les contrôles
    - Tester l'envoi du post
    - Essayer une vidéo > 50MB pour vérifier le message d'erreur
+
+4. **Affichage vidéo en base64 dans le fil:** ⭐ NOUVEAU
+   - Ajouter un post avec une vidéo
+   - Naviguer vers le fil
+   - Vérifier que la vidéo s'affiche correctement (pas comme une image)
+   - Vérifier que les contrôles de lecture (play, pause, volume) fonctionnent
+   - Tester en tant qu'administrateur dans le panneau de modération
 
 ---
 

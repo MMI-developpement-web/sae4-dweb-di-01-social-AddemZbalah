@@ -96,7 +96,7 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
                 <p className="text-secondary text-sm overflow-wrap-break-word">{post.content}</p>
                 {post.mediaUrl && (
                   <div className="mt-2">
-                    {post.mediaUrl.match(/\.(mp4|webm|ogg)$/i) ? (
+                    {post.mediaUrl.match(/\.(mp4|webm|ogg)$/i) || post.mediaUrl.match(/^data:video\//i) ? (
                       <video
                         src={post.mediaUrl}
                         controls
