@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent, useEffect } from "react";
+import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import AddPosts from "../ui/Posts/addPosts";
@@ -33,10 +33,7 @@ export default function Addposts() {
     fetchUser();
   }, [navigate]);
 
-  const remainingCharacters = useMemo(
-    () => MAX_POST_LENGTH - content.length,
-    [content.length],
-  );
+
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -105,7 +102,7 @@ export default function Addposts() {
               className="w-full resize-none bg-transparent text-2xl font-semibold text-secondary placeholder:text-secondary/80 focus:outline-none"
             />
             <p className="mt-2 text-right text-2xl font-semibold text-secondary/70">
-              {MAX_POST_LENGTH - remainingCharacters}/{MAX_POST_LENGTH}
+              {content.length}/{MAX_POST_LENGTH}
             </p>
           </section>
 

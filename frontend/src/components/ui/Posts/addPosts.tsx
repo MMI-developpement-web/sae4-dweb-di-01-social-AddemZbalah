@@ -5,9 +5,13 @@ interface AddPostsProps {
 	onMediaChange?: (file: File | null) => void;
 }
 
+const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB for images
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB for videos
+
 export default function AddPosts({ onMediaChange }: AddPostsProps) {
 	const inputId = useId();
 	const [selectedFile, setSelectedFile] = useState<File | null>(null);
+	const [errorMessage, setErrorMessage] = useState<string>("");
 
 	const previewUrl = useMemo(() => {
 		if (!selectedFile) {
@@ -28,12 +32,30 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 
 	const handleFileChange = (event: ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0] ?? null;
+		setErrorMessage("");
+
+		if (file) {
+			const isVideoFile = file.type.startsWith("video/");
+			const maxSize = isVideoFile ? MAX_VIDEO_SIZE : MAX_FILE_SIZE;
+
+			if (file.size > maxSize) {
+				const maxSizeMB = Math.round(maxSize / (1024 * 1024));
+				setErrorMessage(
+					`Le fichier est trop volumineux. Taille maximale: ${maxSizeMB}MB`
+				);
+				setSelectedFile(null);
+				onMediaChange?.(null);
+				return;
+			}
+		}
+
 		setSelectedFile(file);
 		onMediaChange?.(file);
 	};
 
 	const handleRemoveMedia = () => {
 		setSelectedFile(null);
+		setErrorMessage("");
 		onMediaChange?.(null);
 	};
 
@@ -42,6 +64,12 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 			<h2 id={`${inputId}-title`} className="sr-only">
 				Ajouter un media au post
 			</h2>
+
+			{errorMessage && (
+				<div className="mb-4 rounded-lg bg-red-500/20 p-3 text-sm text-red-400">
+					{errorMessage}
+				</div>
+			)}
 
 			<label
 				htmlFor={inputId}

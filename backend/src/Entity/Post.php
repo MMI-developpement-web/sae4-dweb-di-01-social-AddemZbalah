@@ -31,7 +31,7 @@ class Post
     #[Groups(['default'])]
     private ?User $author = null;
 
-    #[ORM\Column(type: Types::TEXT, nullable: true)]
+    #[ORM\Column(type: Types::TEXT, nullable: true, columnDefinition: 'LONGTEXT DEFAULT NULL')]
     #[Groups(['default'])]
     private ?string $mediaUrl = null;
 
