@@ -2,7 +2,7 @@
     RewriteEngine On
 
     # Définit la base de réécriture pour le dossier public
-    RewriteBase /~zbalah3/sae4-dweb-di-01-social-AddemZbalah/Cycle-B/frontend/
+    RewriteBase /~zbalah3/sae4-dweb-di-01-social-AddemZbalah/Cycle-C/frontend/
 
     # Redirige toutes les requêtes vers index.html si ce n'est pas un fichier ou un répertoire existant
     RewriteCond %{REQUEST_FILENAME} !-f
