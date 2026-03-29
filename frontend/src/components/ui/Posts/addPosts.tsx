@@ -1,12 +1,14 @@
 import { useEffect, useId, useMemo, useState, type ChangeEvent } from "react";
 import ConnexionBtn from "../Connexion-Inscription/Connexion-Inscription_Btn";
 
+const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB for images
+const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB for videos
+const ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"];
+const ALLOWED_VIDEO_TYPES = ["video/mp4", "video/webm", "video/ogg", "video/quicktime"];
+
 interface AddPostsProps {
 	onMediaChange?: (file: File | null) => void;
 }
-
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB for images
-const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB for videos
 
 export default function AddPosts({ onMediaChange }: AddPostsProps) {
 	const inputId = useId();
@@ -36,12 +38,27 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 
 		if (file) {
 			const isVideoFile = file.type.startsWith("video/");
-			const maxSize = isVideoFile ? MAX_VIDEO_SIZE : MAX_FILE_SIZE;
+			const maxSize = isVideoFile ? MAX_VIDEO_SIZE : MAX_IMAGE_SIZE;
+			const allowedTypes = isVideoFile ? ALLOWED_VIDEO_TYPES : ALLOWED_IMAGE_TYPES;
 
+			// Validate file type
+			if (!allowedTypes.includes(file.type)) {
+				const fileTypeLabel = isVideoFile ? "vidéo" : "image";
+				setErrorMessage(
+					`Format de fichier non supporté. Formats acceptés: ${fileTypeLabel === "image" ? "JPEG, PNG, GIF, WebP" : "MP4, WebM, OGG, MOV"}`
+				);
+				setSelectedFile(null);
+				onMediaChange?.(null);
+				return;
+			}
+
+			// Validate file size
 			if (file.size > maxSize) {
 				const maxSizeMB = Math.round(maxSize / (1024 * 1024));
+				const fileSizeMB = Math.round(file.size / (1024 * 1024));
+				const fileTypeLabel = isVideoFile ? "vidéo" : "image";
 				setErrorMessage(
-					`Le fichier est trop volumineux. Taille maximale: ${maxSizeMB}MB`
+					`${fileTypeLabel.charAt(0).toUpperCase()}${fileTypeLabel.slice(1)} trop volumineuse (${fileSizeMB}MB). Taille maximale: ${maxSizeMB}MB`
 				);
 				setSelectedFile(null);
 				onMediaChange?.(null);
