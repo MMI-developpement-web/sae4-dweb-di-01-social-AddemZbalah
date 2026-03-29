@@ -58,6 +58,14 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[Groups(['default'])]
     private ?string $website = null;
 
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['default'])]
+    private bool $isReadOnly = false;
+
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['default'])]
+    private bool $isPrivate = false;
+
     #[ORM\OneToOne(mappedBy: 'user_id', cascade: ['persist', 'remove'])]
     private ?Token $token = null;
 
@@ -405,5 +413,29 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function isBlockingUser(User $user): bool
     {
         return $this->blockedUsers->contains($user);
+    }
+
+    public function isReadOnly(): bool
+    {
+        return $this->isReadOnly;
+    }
+
+    public function setIsReadOnly(bool $isReadOnly): static
+    {
+        $this->isReadOnly = $isReadOnly;
+
+        return $this;
+    }
+
+    public function isPrivate(): bool
+    {
+        return $this->isPrivate;
+    }
+
+    public function setIsPrivate(bool $isPrivate): static
+    {
+        $this->isPrivate = $isPrivate;
+
+        return $this;
     }
 }

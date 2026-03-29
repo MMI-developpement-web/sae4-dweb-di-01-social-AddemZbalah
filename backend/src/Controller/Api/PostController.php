@@ -59,6 +59,8 @@ class PostController extends AbstractController
                 ],
                 'isAuthorBlocked' => $author->getIsBlocked(),
                 'isCensored' => true,
+                'isPinned' => $post->isPinned(),
+                'retweetOf' => $post->getRetweetOf() ? $post->getRetweetOf()->getId() : null,
                 'likes' => 0,
                 'replies' => 0,
             ];
@@ -79,6 +81,8 @@ class PostController extends AbstractController
             ],
             'isAuthorBlocked' => $author->getIsBlocked(),
             'isCensored' => false,
+            'isPinned' => $post->isPinned(),
+            'retweetOf' => $post->getRetweetOf() ? $post->getRetweetOf()->getId() : null,
             'likes' => count($post->getLikes()),
             'replies' => count($post->getReplies()),
         ];
@@ -354,6 +358,11 @@ class PostController extends AbstractController
             return $this->json(['error' => 'Vous avez été bloqué par cet utilisateur'], 403);
         }
         
+        // US 2.3: Check if post author has read-only mode enabled
+        if ($postAuthor->isReadOnly()) {
+            return $this->json(['error' => 'Cet utilisateur a activé le mode lecture seule, vous ne pouvez pas commenter'], 403);
+        }
+        
         $data = json_decode($request->getContent(), true);
         $textContent = trim((string) ($data['textContent'] ?? ''));
 
@@ -434,5 +443,193 @@ class PostController extends AbstractController
         $this->em->flush();
 
         return $this->json(['censored' => false], 200);
+    }
+
+    /**
+     * Pin/Unpin a post on author's profile
+     * POST /api/posts/{id}/pin
+     */
+    #[Route('/posts/{id}/pin', name: 'api.posts.pin', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function pinPost(Post $post): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if ($post->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous ne pouvez épingler que vos propres posts'], 403);
+        }
+
+        // Only one post can be pinned per user
+        $pinnedPosts = $this->postRepository->findBy(['author' => $user, 'isPinned' => true]);
+        foreach ($pinnedPosts as $pinnedPost) {
+            if ($pinnedPost !== $post) {
+                $pinnedPost->setIsPinned(false);
+            }
+        }
+
+        $post->setIsPinned(true);
+        $this->em->flush();
+
+        return $this->json(['pinned' => true, 'post' => $post], 200, [], ['groups' => 'default']);
+    }
+
+    /**
+     * Unpin a post
+     * DELETE /api/posts/{id}/pin
+     */
+    #[Route('/posts/{id}/pin', name: 'api.posts.unpin', methods: ['DELETE'])]
+    #[IsGranted('ROLE_USER')]
+    public function unpinPost(Post $post): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if ($post->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous ne pouvez désépingler que vos propres posts'], 403);
+        }
+
+        $post->setIsPinned(false);
+        $this->em->flush();
+
+        return $this->json(['pinned' => false], 200);
+    }
+
+    /**
+     * Retweet a post
+     * POST /api/posts/{id}/retweet
+     */
+    #[Route('/posts/{id}/retweet', name: 'api.posts.retweet', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
+    public function retweetPost(Post $post, Request $request): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if ($post->getAuthor() === $user) {
+            return $this->json(['error' => 'Vous ne pouvez pas retweeter vos propres posts'], 400);
+        }
+
+        // Check if already retweeted
+        $existingRetweet = $this->postRepository->findOneBy(['author' => $user, 'retweetOf' => $post]);
+        if ($existingRetweet) {
+            return $this->json(['error' => 'Vous avez déjà retweeté ce post'], 409);
+        }
+
+        // Optional: get comment from request
+        $data = json_decode($request->getContent(), true);
+        $comment = isset($data['comment']) ? trim((string) $data['comment']) : null;
+
+        // Create retweet post
+        $retweet = new Post();
+        $retweet->setAuthor($user);
+        $retweet->setRetweetOf($post);
+        $retweet->setCreatedAt(new \DateTimeImmutable());
+        
+        if ($comment) {
+            $retweet->setContent($comment);
+        } else {
+            $retweet->setContent('');
+        }
+
+        $this->em->persist($retweet);
+        $this->em->flush();
+
+        return $this->json($retweet, 201, [], ['groups' => 'default']);
+    }
+
+    /**
+     * Remove a retweet
+     * DELETE /api/posts/{id}/retweet
+     */
+    #[Route('/posts/{id}/retweet', name: 'api.posts.unretweet', methods: ['DELETE'])]
+    #[IsGranted('ROLE_USER')]
+    public function unretweetPost(Post $retweet): JsonResponse
+    {
+        $user = $this->getUser();
+        
+        if ($retweet->getAuthor() !== $user) {
+            return $this->json(['error' => 'Vous ne pouvez supprimer que vos propres retweets'], 403);
+        }
+
+        if (!$retweet->getRetweetOf()) {
+            return $this->json(['error' => 'Ce post n\'est pas un retweet'], 400);
+        }
+
+        $this->em->remove($retweet);
+        $this->em->flush();
+
+        return $this->json(null, 204);
+    }
+
+    /**
+     * Search posts with filters
+     * GET /api/posts/search?q=query&type=tweet|user|hashtag&date_from=2020-01-01&date_to=2025-12-31&author_id=1
+     */
+    #[Route('/search/posts', name: 'api.posts.search', methods: ['GET'])]
+    public function searchPosts(Request $request): JsonResponse
+    {
+        $query = $request->query->get('q', '');
+        $type = $request->query->get('type', 'tweet'); // tweet, user, hashtag
+        $dateFrom = $request->query->get('date_from');
+        $dateTo = $request->query->get('date_to');
+        $authorId = $request->query->get('author_id');
+        $page = max(1, (int) $request->query->get('page', 1));
+        $perPage = min(50, max(1, (int) $request->query->get('per_page', 20)));
+        $offset = ($page - 1) * $perPage;
+
+        $qb = $this->postRepository->createQueryBuilder('p')
+            ->where('p.censored = false')
+            ->orderBy('p.createdAt', 'DESC');
+
+        // Search by content
+        if ($query) {
+            $qb->andWhere('p.content LIKE :query')
+               ->setParameter('query', '%' . $query . '%');
+        }
+
+        // Filter by type
+        if ($type === 'hashtag' && $query) {
+            $qb->andWhere('p.content LIKE :hashtag')
+               ->setParameter('hashtag', '%#' . $query . '%');
+        } elseif ($type === 'user' && $query) {
+            // Search by username in content @mentions
+            $qb->andWhere('p.content LIKE :mention')
+               ->setParameter('mention', '%@' . $query . '%');
+        }
+
+        // Filter by date range
+        if ($dateFrom) {
+            $qb->andWhere('p.createdAt >= :dateFrom')
+               ->setParameter('dateFrom', new \DateTime($dateFrom));
+        }
+        if ($dateTo) {
+            $qb->andWhere('p.createdAt <= :dateTo')
+               ->setParameter('dateTo', new \DateTime($dateTo . ' 23:59:59'));
+        }
+
+        // Filter by author
+        if ($authorId) {
+            $qb->andWhere('p.author = :authorId')
+               ->setParameter('authorId', (int) $authorId);
+        }
+
+        // Get total count
+        $total = $qb->select('COUNT(p.id)')->getQuery()->getSingleScalarResult();
+
+        // Get paginated results
+        $posts = $qb->select('p')
+            ->setFirstResult($offset)
+            ->setMaxResults($perPage)
+            ->getQuery()
+            ->getResult();
+
+        $postsData = array_map([$this, 'formatPostData'], $posts);
+
+        return $this->json([
+            'posts' => $postsData,
+            'pagination' => [
+                'current_page' => $page,
+                'per_page' => $perPage,
+                'total_items' => $total,
+            ],
+        ]);
     }
 }

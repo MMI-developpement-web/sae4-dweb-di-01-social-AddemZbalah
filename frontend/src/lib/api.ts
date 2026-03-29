@@ -29,6 +29,8 @@ export interface User {
   postsCount?: number;
   followersCount?: number;
   followingCount?: number;
+  isReadOnly?: boolean;     // US 2.3: Mode lecture seule
+  isPrivate?: boolean;      // Mode compte privé
 }
 
 export interface Post {
@@ -36,6 +38,8 @@ export interface Post {
   content: string;
   time?: string;
   createdAt: string;
+  isPinned?: boolean;       // US 3.6: Post épinglé
+  retweetOf?: number;       // Retweet: ID du post original
   author: {
     id: number;
     name: string;
@@ -527,5 +531,135 @@ export async function uncensorPost(postId: number): Promise<boolean> {
     } catch (err) {
         console.error('Uncensor post error:', err);
         return false;
+    }
+}
+
+// ============ NEW ENDPOINTS FOR USER STORIES =============
+
+// US 2.3: Compte en lecture seule - Get user settings
+export async function getUserSettings(): Promise<any | null> {
+    try {
+        const res = await fetch(`${API_BASE}/users/settings`, {
+            headers: getAuthHeaders(),
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error('Get user settings error:', err);
+        return null;
+    }
+}
+
+// US 2.3: Compte en lecture seule - Update user settings
+export async function updateUserSettings(settings: {
+    isReadOnly?: boolean;
+    isPrivate?: boolean;
+}): Promise<any | null> {
+    try {
+        const res = await fetch(`${API_BASE}/users/settings`, {
+            method: 'PUT',
+            headers: getAuthHeaders(),
+            body: JSON.stringify(settings),
+        });
+        if (!res.ok) return null;
+        return await res.json();
+    } catch (err) {
+        console.error('Update user settings error:', err);
+        return null;
+    }
+}
+
+// US 3.6: Épingler un post
+export async function pinPost(postId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/posts/${postId}/pin`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+        });
+        return res.ok;
+    } catch (err) {
+        console.error('Pin post error:', err);
+        return false;
+    }
+}
+
+// US 3.6: Désépingler un post
+export async function unpinPost(postId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/posts/${postId}/pin`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        return res.ok;
+    } catch (err) {
+        console.error('Unpin post error:', err);
+        return false;
+    }
+}
+
+// Retweet a post
+export async function retweetPost(postId: number, comment?: string): Promise<any | null> {
+    try {
+        const res = await fetch(`${API_BASE}/posts/${postId}/retweet`, {
+            method: 'POST',
+            headers: getAuthHeaders(),
+            body: JSON.stringify({ comment: comment || null }),
+        });
+        if (!res.ok) {
+            const errorData = await res.json();
+            throw new Error(errorData.error || 'Erreur lors du retweet');
+        }
+        return await res.json();
+    } catch (err) {
+        if (err instanceof Error) {
+            console.error('Retweet post error:', err.message);
+            throw err;
+        }
+        console.error('Retweet post error:', err);
+        return null;
+    }
+}
+
+// Remove a retweet
+export async function unretweetPost(retweetId: number): Promise<boolean> {
+    try {
+        const res = await fetch(`${API_BASE}/posts/${retweetId}/retweet`, {
+            method: 'DELETE',
+            headers: getAuthHeaders(),
+        });
+        return res.ok;
+    } catch (err) {
+        console.error('Unretweet post error:', err);
+        return false;
+    }
+}
+
+// US 4.3: Search posts with filters
+export async function searchPosts(query: string, options?: {
+    type?: 'tweet' | 'user' | 'hashtag';
+    dateFrom?: string;
+    dateTo?: string;
+    authorId?: number;
+    page?: number;
+    perPage?: number;
+}): Promise<any> {
+    try {
+        const params = new URLSearchParams();
+        params.append('q', query || '');
+        if (options?.type) params.append('type', options.type);
+        if (options?.dateFrom) params.append('date_from', options.dateFrom);
+        if (options?.dateTo) params.append('date_to', options.dateTo);
+        if (options?.authorId) params.append('author_id', options.authorId.toString());
+        params.append('page', (options?.page || 1).toString());
+        params.append('per_page', (options?.perPage || 20).toString());
+
+        const res = await fetch(`${API_BASE}/search/posts?${params}`, {
+            headers: getAuthHeaders(),
+        });
+        if (!res.ok) return { posts: [] };
+        return await res.json();
+    } catch (err) {
+        console.error('Search posts error:', err);
+        return { posts: [] };
     }
 }

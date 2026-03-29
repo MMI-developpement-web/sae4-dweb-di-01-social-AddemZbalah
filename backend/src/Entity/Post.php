@@ -39,6 +39,15 @@ class Post
     #[Groups(['default'])]
     private bool $censored = false;
 
+    #[ORM\Column(options: ['default' => false])]
+    #[Groups(['default'])]
+    private bool $isPinned = false;
+
+    #[ORM\ManyToOne]
+    #[ORM\JoinColumn(nullable: true, onDelete: 'CASCADE')]
+    #[Groups(['default'])]
+    private ?Post $retweetOf = null;
+
     /**
      * @var Collection<int, Like>
      */
@@ -179,6 +188,30 @@ class Post
                 $reply->setCommentOf(null);
             }
         }
+
+        return $this;
+    }
+
+    public function isPinned(): bool
+    {
+        return $this->isPinned;
+    }
+
+    public function setIsPinned(bool $isPinned): static
+    {
+        $this->isPinned = $isPinned;
+
+        return $this;
+    }
+
+    public function getRetweetOf(): ?Post
+    {
+        return $this->retweetOf;
+    }
+
+    public function setRetweetOf(?Post $retweetOf): static
+    {
+        $this->retweetOf = $retweetOf;
 
         return $this;
     }

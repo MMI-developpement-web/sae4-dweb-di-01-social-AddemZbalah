@@ -190,6 +190,14 @@ class UserController extends AbstractController
             $currentUser->setLocation(trim((string) $data['location']) ?: null);
         }
 
+        if (isset($data['isReadOnly'])) {
+            $currentUser->setIsReadOnly((bool) $data['isReadOnly']);
+        }
+
+        if (isset($data['isPrivate'])) {
+            $currentUser->setIsPrivate((bool) $data['isPrivate']);
+        }
+
         $this->em->flush();
 
         return $this->json([
@@ -204,6 +212,8 @@ class UserController extends AbstractController
                 'bannerImage' => $currentUser->getBannerImage(),
                 'website' => $currentUser->getWebsite(),
                 'location' => $currentUser->getLocation(),
+                'isReadOnly' => $currentUser->isReadOnly(),
+                'isPrivate' => $currentUser->isPrivate(),
             ]
         ], 200);
     }
@@ -333,5 +343,62 @@ class UserController extends AbstractController
         $isBlocking = $currentUser->isBlockingUser($user);
 
         return $this->json(['isBlocking' => $isBlocking]);
+    }
+
+    /**
+     * Update user settings (isReadOnly, isPrivate)
+     * PUT /api/users/settings
+     * US 2.3: Compte en lecture seule
+     */
+    #[Route('/settings', name: 'update_settings', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER')]
+    public function updateSettings(Request $request): JsonResponse
+    {
+        $currentUser = $this->getUser();
+
+        if (!$currentUser instanceof User) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        $data = json_decode($request->getContent(), true);
+
+        if (isset($data['isReadOnly'])) {
+            $currentUser->setIsReadOnly((bool) $data['isReadOnly']);
+        }
+
+        if (isset($data['isPrivate'])) {
+            $currentUser->setIsPrivate((bool) $data['isPrivate']);
+        }
+
+        $this->em->flush();
+
+        return $this->json([
+            'success' => true,
+            'message' => 'Paramètres mis à jour avec succès',
+            'settings' => [
+                'isReadOnly' => $currentUser->isReadOnly(),
+                'isPrivate' => $currentUser->isPrivate(),
+            ]
+        ], 200);
+    }
+
+    /**
+     * Get current user settings
+     * GET /api/users/settings
+     */
+    #[Route('/settings', name: 'get_settings', methods: ['GET'])]
+    #[IsGranted('ROLE_USER')]
+    public function getSettings(): JsonResponse
+    {
+        $currentUser = $this->getUser();
+
+        if (!$currentUser instanceof User) {
+            return $this->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+        }
+
+        return $this->json([
+            'isReadOnly' => $currentUser->isReadOnly(),
+            'isPrivate' => $currentUser->isPrivate(),
+        ], 200);
     }
 }
