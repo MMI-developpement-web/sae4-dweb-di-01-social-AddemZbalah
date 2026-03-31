@@ -33,6 +33,10 @@ class Reply
     #[ORM\JoinColumn(nullable: false)]
     private ?Post $commentOf = null;
 
+    #[ORM\Column(type: Types::BOOLEAN)]
+    #[Groups(['default', 'reply:read'])]
+    private bool $isCensored = false;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -82,6 +86,18 @@ class Reply
     public function setCommentOf(?Post $commentOf): static
     {
         $this->commentOf = $commentOf;
+
+        return $this;
+    }
+
+    public function isCensored(): bool
+    {
+        return $this->isCensored;
+    }
+
+    public function setCensored(bool $isCensored): static
+    {
+        $this->isCensored = $isCensored;
 
         return $this;
     }

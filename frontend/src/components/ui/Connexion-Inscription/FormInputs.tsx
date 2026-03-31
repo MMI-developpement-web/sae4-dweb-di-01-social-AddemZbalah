@@ -23,7 +23,7 @@ const inputVariants = cva(
   },
 );
 
-interface InputLoginProps extends VariantProps<typeof inputVariants> {
+interface InputLoginProps extends VariantProps<typeof inputVariants>, Omit<InputHTMLAttributes<HTMLInputElement>, 'size'> {
   placeholder?: string;
   type?: string;
 }
@@ -34,7 +34,7 @@ export default function InputLogin({
   type = "text",
   placeholder,
   ...props
-}: InputLoginProps & InputHTMLAttributes<HTMLInputElement>) {
+}: InputLoginProps) {
   return (
     <input
       type={type}

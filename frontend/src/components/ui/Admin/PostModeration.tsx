@@ -1,46 +1,63 @@
 import { useState, useEffect } from 'react';
-import { getPosts } from '../../../lib/api';
-import PostCensor from './PostCensor';
+import { getPosts, getReplies } from '../../../lib/api';
+import ContentCensor from './ContentCensor';
 
 interface PostModerationProps {
   searchTerm?: string;
 }
 
 export default function PostModeration({ searchTerm = '' }: PostModerationProps) {
-  const [posts, setPosts] = useState<any[]>([]);
+  const [content, setContent] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const fetchPosts = async () => {
+    const fetchContent = async () => {
       try {
         setIsLoading(true);
         const data = await getPosts(1);
-        let allPosts = data.posts || [];
+        let allContent: any[] = [];
+
+        // Add all posts
+        const posts = (data.posts || []).map((p: any) => ({ ...p, type: 'post' }));
+        allContent = [...posts];
+
+        // Fetch and add all replies from all posts
+        for (const post of posts) {
+          const replies = await getReplies(post.id);
+          const repliesWithType = (replies || []).map((r: any) => ({
+            ...r,
+            type: 'reply',
+            parentPostId: post.id,
+          }));
+          allContent = [...allContent, ...repliesWithType];
+        }
 
         // Filter by search term if provided
         if (searchTerm) {
-          allPosts = allPosts.filter((post: any) =>
-            post.content.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            post.author?.name.toLowerCase().includes(searchTerm.toLowerCase())
+          allContent = allContent.filter((c: any) =>
+            (c.content || c.textContent)
+              .toLowerCase()
+              .includes(searchTerm.toLowerCase()) ||
+            c.author?.name.toLowerCase().includes(searchTerm.toLowerCase())
           );
         }
 
-        setPosts(allPosts);
+        setContent(allContent);
         setError(null);
       } catch (err) {
-        setError('Erreur lors du chargement des posts');
+        setError('Erreur lors du chargement du contenu');
         console.error(err);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchPosts();
+    fetchContent();
   }, [searchTerm]);
 
   if (isLoading) {
-    return <div className="text-center py-8">Chargement des posts...</div>;
+    return <div className="text-center py-8">Chargement du contenu...</div>;
   }
 
   if (error) {
@@ -51,24 +68,35 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
     <div className="space-y-4">
       <h2 className="text-xl font-bold text-white mb-4">Contenu à modérer</h2>
 
-      {posts.length === 0 ? (
+      {content.length === 0 ? (
         <div className="text-center py-8 text-secondary/70">
-          Aucun post trouvé
+          Aucun contenu trouvé
         </div>
       ) : (
         <div className="space-y-3">
-          {posts.map((post) => (
+          {content.map((item) => (
             <div
-              key={post.id}
-              className="bg-primary/20 rounded-lg p-4 border border-primary/40 space-y-3"
+              key={`${item.type}-${item.id}`}
+              className={`rounded-lg p-4 border space-y-3 ${
+                item.type === 'reply'
+                  ? 'bg-primary/10 border-primary/30 ml-4'
+                  : 'bg-primary/20 border-primary/40'
+              }`}
             >
-              {/* Post Info */}
+              {/* Content Info */}
               <div className="flex items-start justify-between">
                 <div>
-                  <p className="font-semibold text-white">{post.author?.name}</p>
-                  <p className="text-sm text-secondary/70">@{post.author?.mail?.split('@')[0]}</p>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-semibold text-white">{item.author?.name}</p>
+                    {item.type === 'reply' && (
+                      <span className="text-xs bg-blue-500/30 text-blue-300 px-2 py-0.5 rounded">
+                        Réponse
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-secondary/70">@{item.author?.mail?.split('@')[0]}</p>
                   <p className="text-xs text-secondary/60 mt-1">
-                    {new Date(post.createdAt).toLocaleDateString('fr-FR', {
+                    {new Date(item.createdAt).toLocaleDateString('fr-FR', {
                       day: 'numeric',
                       month: 'short',
                       year: 'numeric',
@@ -77,35 +105,43 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
                     })}
                   </p>
                 </div>
-                <PostCensor
-                  postId={post.id}
-                  isCensored={post.censored || false}
+                <ContentCensor
+                  contentId={item.id}
+                  type={item.type}
+                  isCensored={item.isCensored || item.censored || false}
                   onCensorChange={() => {
-                    // Refresh post status
-                    setPosts((prev) =>
-                      prev.map((p) =>
-                        p.id === post.id ? { ...p, censored: !p.censored } : p
+                    setContent((prev) =>
+                      prev.map((c) =>
+                        c.id === item.id && c.type === item.type
+                          ? {
+                              ...c,
+                              isCensored: !c.isCensored,
+                              censored: !c.censored,
+                            }
+                          : c
                       )
                     );
                   }}
                 />
               </div>
 
-              {/* Post Content */}
+              {/* Content */}
               <div className="bg-black/30 rounded p-3">
-                <p className="text-secondary text-sm overflow-wrap-break-word">{post.content}</p>
-                {post.mediaUrl && (
+                <p className="text-secondary text-sm overflow-wrap-break-word">
+                  {item.type === 'post' ? item.content : item.textContent}
+                </p>
+                {item.mediaUrl && (
                   <div className="mt-2">
-                    {post.mediaUrl.match(/\.(mp4|webm|ogg)$/i) || post.mediaUrl.match(/^data:video\//i) ? (
+                    {item.mediaUrl.match(/\.(mp4|webm|ogg)$/i) || item.mediaUrl.match(/^data:video\//i) ? (
                       <video
-                        src={post.mediaUrl}
+                        src={item.mediaUrl}
                         controls
                         className="w-full rounded max-h-64 object-cover"
                       />
                     ) : (
                       <img
-                        src={post.mediaUrl}
-                        alt="Post media"
+                        src={item.mediaUrl}
+                        alt="Media"
                         className="w-full rounded max-h-64 object-cover"
                       />
                     )}
@@ -114,7 +150,7 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
               </div>
 
               {/* Status Badge */}
-              {post.censored && (
+              {(item.isCensored || item.censored) && (
                 <div className="bg-yellow-500/20 border border-yellow-500/50 rounded p-2">
                   <p className="text-yellow-400 text-sm font-medium">
                     ⚠️ Ce contenu a été censuré

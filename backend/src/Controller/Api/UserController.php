@@ -6,6 +6,7 @@ use App\Entity\Follow;
 use App\Entity\User;
 use App\Repository\FollowRepository;
 use App\Repository\UserRepository;
+use App\Service\FileUploader;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -21,6 +22,7 @@ class UserController extends AbstractController
         private UserRepository $userRepository,
         private FollowRepository $followRepository,
         private EntityManagerInterface $em,
+        private FileUploader $fileUploader,
     ) {
     }
 
@@ -170,42 +172,51 @@ class UserController extends AbstractController
 
         $data = json_decode($request->getContent(), true);
 
-        if (isset($data['bio'])) {
-            $currentUser->setBio(trim((string) $data['bio']) ?: null);
+        try {
+            if (isset($data['bio'])) {
+                $currentUser->setBio(trim((string) $data['bio']) ?: null);
+            }
+
+            if (isset($data['profilePhoto'])) {
+                $profilePhoto = $this->fileUploader->process($data['profilePhoto'], 'profilePhoto');
+                $currentUser->setProfilePhoto($profilePhoto);
+            }
+
+            if (isset($data['bannerImage'])) {
+                $bannerImage = $this->fileUploader->process($data['bannerImage'], 'bannerImage');
+                $currentUser->setBannerImage($bannerImage);
+            }
+
+            if (isset($data['website'])) {
+                $currentUser->setWebsite(trim((string) $data['website']) ?: null);
+            }
+
+            if (isset($data['location'])) {
+                $currentUser->setLocation(trim((string) $data['location']) ?: null);
+            }
+
+            $this->em->flush();
+
+            return $this->json([
+                'success' => true,
+                'message' => 'Profil mis à jour avec succès',
+                'user' => [
+                    'id' => $currentUser->getId(),
+                    'name' => $currentUser->getName(),
+                    'mail' => $currentUser->getMail(),
+                    'bio' => $currentUser->getBio(),
+                    'profilePhoto' => $currentUser->getProfilePhoto(),
+                    'bannerImage' => $currentUser->getBannerImage(),
+                    'website' => $currentUser->getWebsite(),
+                    'location' => $currentUser->getLocation(),
+                ]
+            ], 200);
+        } catch (\InvalidArgumentException $e) {
+            return $this->json(['error' => $e->getMessage()], Response::HTTP_BAD_REQUEST);
+        } catch (\Exception $e) {
+            error_log("Erreur updateProfile: " . $e->getMessage());
+            return $this->json(['error' => 'Erreur lors de la mise à jour'], Response::HTTP_INTERNAL_SERVER_ERROR);
         }
-
-        if (isset($data['profilePhoto'])) {
-            $currentUser->setProfilePhoto(trim((string) $data['profilePhoto']) ?: null);
-        }
-
-        if (isset($data['bannerImage'])) {
-            $currentUser->setBannerImage(trim((string) $data['bannerImage']) ?: null);
-        }
-
-        if (isset($data['website'])) {
-            $currentUser->setWebsite(trim((string) $data['website']) ?: null);
-        }
-
-        if (isset($data['location'])) {
-            $currentUser->setLocation(trim((string) $data['location']) ?: null);
-        }
-
-        $this->em->flush();
-
-        return $this->json([
-            'success' => true,
-            'message' => 'Profil mis à jour avec succès',
-            'user' => [
-                'id' => $currentUser->getId(),
-                'name' => $currentUser->getName(),
-                'mail' => $currentUser->getMail(),
-                'bio' => $currentUser->getBio(),
-                'profilePhoto' => $currentUser->getProfilePhoto(),
-                'bannerImage' => $currentUser->getBannerImage(),
-                'website' => $currentUser->getWebsite(),
-                'location' => $currentUser->getLocation(),
-            ]
-        ], 200);
     }
 
     /**

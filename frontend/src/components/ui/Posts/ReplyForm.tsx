@@ -49,7 +49,7 @@ export default function ReplyForm({ postId, onReplyAdded }: ReplyFormProps) {
   }
 
   return (
-    <div className="space-y-2 mt-2 pl-4 border-l border-gray-200">
+    <div className="space-y-2 mt-2 pl-4 border-l border-gray-200" onClick={(e) => e.stopPropagation()}>
       <textarea
         value={textContent}
         onChange={(e) => setTextContent(e.target.value)}

@@ -1,7 +1,7 @@
-import { useState, useRef } from 'react';
+import { useState } from 'react';
 import { cva } from 'class-variance-authority';
 import { cn } from '../../../lib/utils';
-import { editPost } from '../../../lib/api';
+import { editReply } from '../../../lib/api';
 
 const inputFieldVariants = cva(
   'w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
@@ -28,44 +28,17 @@ const buttonVariants = cva(
   },
 );
 
-const uploadButtonVariants = cva(
-  'w-full px-4 py-2 rounded font-medium transition-colors border-2 border-dashed cursor-pointer hover:border-blue-500 hover:bg-blue-50',
-  {
-    variants: {
-      state: {
-        empty: 'border-gray-300 text-gray-600',
-        filled: 'border-green-500 text-green-700 bg-green-50',
-      },
-    },
-  },
-);
-
-interface PostEditProps {
-  postId: number;
+interface ReplyEditProps {
+  replyId: number;
   initialContent: string;
-  initialMediaUrl?: string | null;
   onClose: () => void;
-  onSave: (updatedPost: any) => void;
+  onSave: (updatedReply: any) => void;
 }
 
-export default function PostEdit({ postId, initialContent, initialMediaUrl, onClose, onSave }: PostEditProps) {
+export default function ReplyEdit({ replyId, initialContent, onClose, onSave }: ReplyEditProps) {
   const [content, setContent] = useState(initialContent);
-  const [mediaUrl, setMediaUrl] = useState(initialMediaUrl || '');
-  const [mediaFile, setMediaFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
-  
-  const mediaInputRef = useRef<HTMLInputElement>(null);
-
-  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setMediaFile(file);
-      const reader = new FileReader();
-      reader.onload = () => setMediaUrl(reader.result as string);
-      reader.readAsDataURL(file);
-    }
-  };
 
   const handleSave = async () => {
     if (!content.trim()) {
@@ -76,16 +49,16 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
     setIsLoading(true);
     setMessage('');
 
-    const result = await editPost(postId, content.trim(), mediaUrl.trim() || undefined);
+    const result = await editReply(replyId, content.trim());
 
     if (result) {
-      setMessage('✓ Post modifié avec succès');
+      setMessage('✓ Réponse modifiée');
       setTimeout(() => {
         onSave(result);
         onClose();
       }, 800);
     } else {
-      setMessage('✗ Erreur lors de la modification');
+      setMessage('✗ Erreur');
     }
 
     setIsLoading(false);
@@ -94,11 +67,10 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
-        <h2 className="text-2xl font-bold mb-4">Modifier le post</h2>
+        <h2 className="text-2xl font-bold mb-4">Modifier la réponse</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-2">Contenu</label>
             <textarea
               value={content}
               onChange={(e) => setContent(e.target.value)}
@@ -107,27 +79,6 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
               rows={4}
             />
             <span className="text-xs text-gray-500">{content.length}/280</span>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium mb-2">Média (optionnel)</label>
-            {mediaUrl && (
-              <img src={mediaUrl} alt="Aperçu du média" className="w-full h-40 object-cover mb-2 rounded border border-gray-300" />
-            )}
-            <input
-              ref={mediaInputRef}
-              type="file"
-              accept="image/*,video/*"
-              onChange={handleMediaSelect}
-              className="hidden"
-            />
-            <button
-              type="button"
-              onClick={() => mediaInputRef.current?.click()}
-              className={cn(uploadButtonVariants({ state: mediaFile ? 'filled' : 'empty' }))}
-            >
-              {mediaFile ? `✓ ${mediaFile.name}` : '📁 Choisir un média'}
-            </button>
           </div>
 
           {message && (

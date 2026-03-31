@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react";
+import { cva } from "class-variance-authority";
+import { cn } from "../../lib/utils";
 import PostWrapper from "../ui/Posts/PostWrapper";
 import Nav from "../ui/Navbar/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
@@ -21,6 +23,21 @@ const SUGGESTED_USERS: SuggestionUser[] = [
     ctaLabel: "Suivre",
   },
 ];
+
+const refreshButtonVariants = cva(
+  'inline-flex items-center justify-center gap-2 h-9 px-3 rounded-lg border border-primary/20 text-primary font-medium transition-all',
+  {
+    variants: {
+      state: {
+        loading: 'bg-primary/20 opacity-60 cursor-not-allowed',
+        idle: 'hover:bg-primary/10 hover:border-primary/40 cursor-pointer',
+      },
+    },
+    defaultVariants: {
+      state: 'idle',
+    },
+  },
+);
 
 export default function Fil() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -267,11 +284,7 @@ export default function Fil() {
               <button
                 onClick={handleRefresh}
                 disabled={isRefreshing}
-                className={`inline-flex items-center justify-center gap-2 h-9 px-3 rounded-lg border border-primary/20 text-primary font-medium transition-all ${
-                  isRefreshing
-                    ? "bg-primary/20 opacity-60 cursor-not-allowed"
-                    : "hover:bg-primary/10 hover:border-primary/40 cursor-pointer"
-                }`}
+                className={cn(refreshButtonVariants({ state: isRefreshing ? 'loading' : 'idle' }))}
                 aria-label="Rafraîchir le fil"
                 type="button"
               >

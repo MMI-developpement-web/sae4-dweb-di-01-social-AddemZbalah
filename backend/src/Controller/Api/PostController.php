@@ -391,6 +391,36 @@ class PostController extends AbstractController
     }
 
     /**
+     * Update a reply
+     * PUT /api/replies/{id}
+     */
+    #[Route('/replies/{id}', name: 'api.replies.update', methods: ['PUT'])]
+    #[IsGranted('ROLE_USER')]
+    public function updateReply(Reply $reply, Request $request): JsonResponse
+    {
+        if ($reply->getAuthor() !== $this->getUser()) {
+            return $this->json(['error' => 'Unauthorized or you are not the author.'], 403);
+        }
+
+        $data = json_decode($request->getContent(), true);
+        $textContent = trim((string) ($data['textContent'] ?? ''));
+
+        $violations = $this->validator->validate($textContent, [
+            new Assert\NotBlank(message: 'La réponse ne peut pas être vide.'),
+            new Assert\Length(max: 280, maxMessage: 'La réponse ne peut pas dépasser 280 caractères.'),
+        ]);
+
+        if (count($violations) > 0) {
+            return $this->json(['error' => $violations[0]->getMessage()], 422);
+        }
+
+        $reply->setTextContent($textContent);
+        $this->em->flush();
+
+        return $this->json($reply, 200, [], ['groups' => 'reply:read']);
+    }
+
+    /**
      * Delete a reply
      * DELETE /api/replies/{id}
      */
@@ -431,6 +461,34 @@ class PostController extends AbstractController
     public function uncensorPost(Post $post): JsonResponse
     {
         $post->setCensored(false);
+        $this->em->flush();
+
+        return $this->json(['censored' => false], 200);
+    }
+
+    /**
+     * Censor a reply (admin only)
+     * POST /api/replies/{id}/censor
+     */
+    #[Route('/replies/{id}/censor', name: 'api.replies.censor', methods: ['POST'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function censorReply(Reply $reply): JsonResponse
+    {
+        $reply->setCensored(true);
+        $this->em->flush();
+
+        return $this->json(['censored' => true], 200);
+    }
+
+    /**
+     * Uncensor a reply (admin only)
+     * DELETE /api/replies/{id}/censor
+     */
+    #[Route('/replies/{id}/censor', name: 'api.replies.uncensor', methods: ['DELETE'])]
+    #[IsGranted('ROLE_ADMIN')]
+    public function uncensorReply(Reply $reply): JsonResponse
+    {
+        $reply->setCensored(false);
         $this->em->flush();
 
         return $this->json(['censored' => false], 200);

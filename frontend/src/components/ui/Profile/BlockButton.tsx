@@ -1,7 +1,24 @@
 import { useState } from 'react';
+import { cva, type VariantProps } from 'class-variance-authority';
+import { cn } from '../../../lib/utils';
 import { blockUser, unblockUser } from '../../../lib/api';
 
-interface BlockButtonProps {
+const blockButtonVariants = cva(
+  'px-4 py-2 rounded font-medium text-sm transition-colors disabled:opacity-50',
+  {
+    variants: {
+      status: {
+        blocking: 'bg-gray-500 text-white hover:bg-gray-600',
+        active: 'bg-red-500 text-white hover:bg-red-600',
+      },
+    },
+    defaultVariants: {
+      status: 'active',
+    },
+  },
+);
+
+interface BlockButtonProps extends VariantProps<typeof blockButtonVariants> {
   userId: number;
   isBlocking: boolean;
   onBlockChange?: (isBlocking: boolean) => void;
@@ -37,11 +54,7 @@ export default function BlockButton({ userId, isBlocking: initialBlocking, onBlo
     <button
       onClick={handleToggle}
       disabled={isLoading || disabled}
-      className={`px-4 py-2 rounded font-medium text-sm transition-colors ${
-        isBlocking
-          ? 'bg-gray-500 text-white hover:bg-gray-600'
-          : 'bg-red-500 text-white hover:bg-red-600'
-      } disabled:opacity-50`}
+      className={cn(blockButtonVariants({ status: isBlocking ? 'blocking' : 'active' }))}
     >
       {isLoading ? '...' : isBlocking ? 'Débloquer' : 'Bloquer'}
     </button>

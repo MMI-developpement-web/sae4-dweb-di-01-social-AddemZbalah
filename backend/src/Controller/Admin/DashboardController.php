@@ -48,6 +48,7 @@ class DashboardController extends AbstractDashboardController
         yield MenuItem::linkToDashboard('Dashboard', 'fa fa-home');
         yield MenuItem::linkTo(UserCrudController::class, 'Utilisateurs', 'fas fa-users');
         yield MenuItem::linkTo(PostCrudController::class, 'Posts', 'fas fa-list');
+        yield MenuItem::linkTo(ReplyCrudController::class, 'Réponses', 'fas fa-comments');
         yield MenuItem::linkTo(TokenCrudController::class, 'Tokens', 'fas fa-key');
         yield MenuItem::linkToLogout('Déconnexion', 'fa fa-sign-out')->setCssClass('text-danger');
     }

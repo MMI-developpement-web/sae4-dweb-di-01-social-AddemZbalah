@@ -5,43 +5,66 @@ const API_BASE = import.meta.env.VITE_API_URL || '/api';
 
 export { API_BASE };
 
+// Helper for simple GET requests
+async function fetchJSON(url: string): Promise<any> {
+  try {
+    const res = await fetch(url, { headers: getAuthHeaders() });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (err) {
+    console.error(`Fetch error: ${url}`, err);
+    return null;
+  }
+}
+
+// Helper for simple requests (POST/DELETE) that return status
+async function apiRequest(url: string, method: 'POST' | 'DELETE'): Promise<boolean> {
+  try {
+    const res = await fetch(url, { method, headers: getAuthHeaders() });
+    return res.ok;
+  } catch (err) {
+    console.error(`Request error: ${method} ${url}`, err);
+    return false;
+  }
+}
+
 export interface User {
   id: number;
-  username?: string;  // From login endpoint
-  user?: string;      // From other endpoints (backward compat)
-  email?: string;
+  // username?: string;  // unused - from registration only
+  // user?: string;      // unused - legacy backward compat
+  // email?: string;     // unused - use mail instead
+  // firstname?: string; // unused
+  name: string;
   mail?: string;
-  name?: string;
-  firstname?: string;
-  role?: 'user' | 'admin';
-  active?: boolean;
-  phone?: string;
-  birthDate?: string;
-  /** photo de profil (champ 'pp' dans la base) */
-  pp?: string;
+  // active?: boolean;   // unused
+  // phone?: string;     // unused
+  // birthDate?: string; // unused
+  // pp?: string;        // unused - legacy alias for profilePhoto
   profilePhoto?: string;
   avatar?: string;
+  role?: 'user' | 'admin';
   bio?: string;
   bannerImage?: string;
   location?: string;
   website?: string;
   createdAt?: string;
-  postsCount?: number;
-  followersCount?: number;
-  followingCount?: number;
+  // postsCount?: number;      // unused - cached in localStorage
+  // followersCount?: number;  // unused
+  // followingCount?: number;  // unused
 }
 
 export interface Post {
   id: number;
   content: string;
-  time?: string;
+  // time?: string;  // unused - use createdAt
   createdAt: string;
   author: {
     id: number;
     name: string;
-    user: string;
+    // user?: string;  // unused - legacy alias
     mail?: string;
-    pp?: string;
+    // pp?: string;    // unused - legacy alias for profilePhoto
+    profilePhoto?: string;
   };
 }
 
@@ -53,42 +76,30 @@ export interface LoginResponse {
 
 export async function login(email: string, password: string): Promise<LoginResponse> {
   try {
-    console.log('Attempt login with email:', email);
     const res = await fetch(`${API_BASE}/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
       body: JSON.stringify({ email, password }),
     });
     
-    console.log('Login response status:', res.status, res.ok);
-    
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      console.error('Login failed:', res.status, errorData);
-      // Return error message from backend if available
       const errorMessage = errorData.error || `Erreur de connexion: ${res.status}`;
       return { error: errorMessage };
     }
     
     const data = await res.json();
-    console.log('Login response data:', data);
     
-    // Store token in localStorage for API requests (your code uses "token", not "authToken")
     if (data.token) {
       localStorage.setItem('token', data.token);
       return { token: data.token };
     }
     
-    console.warn('Login response missing token:', data);
     return { error: 'Token manquant dans la réponse' };
   } catch (err) {
     console.error('Login error:', err);
-    if (err instanceof Error) {
-      console.error('Error message:', err.message);
-      console.error('Error stack:', err.stack);
-      return { error: err.message };
-    }
-    return { error: 'Erreur inconnue lors de la connexion' };
+    const message = err instanceof Error ? err.message : 'Erreur inconnue lors de la connexion';
+    return { error: message };
   }
 }
 
@@ -115,7 +126,6 @@ export async function register(data: any): Promise<any> {
 
 // Token management
 export function getAuthToken(): string | null {
-  // Your code historically uses 'token', not 'authToken'
   return localStorage.getItem('token');
 }
 
@@ -138,55 +148,26 @@ export function logout(): void {
 }
 
 // Posts
-export async function getPosts(page: number = 1, authorId?: number): Promise<any> {
-  try {
-    const url = authorId 
-      ? `${API_BASE}/posts?page=${page}&author_id=${authorId}` 
-      : `${API_BASE}/posts?page=${page}`;
-    const res = await fetch(url, {
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error('Fetch posts failed');
-    return await res.json();
-  } catch (err) {
-    console.error('Get posts error:', err);
-    return { posts: [] };
-  }
+export async function getPosts(page: number = 1, authorId?: number) {
+  const url = authorId 
+    ? `${API_BASE}/posts?page=${page}&author_id=${authorId}` 
+    : `${API_BASE}/posts?page=${page}`;
+  const data = await fetchJSON(url);
+  return data || { posts: [] };
 }
 
-// Get only the number of posts for an author (uses pagination.total_items when available)
+// Get only the number of posts for an author
 export async function getPostsCount(authorId?: number): Promise<number> {
-  try {
-    const url = authorId 
-      ? `${API_BASE}/posts?page=1&author_id=${authorId}` 
-      : `${API_BASE}/posts?page=1`;
-    const res = await fetch(url, {
-      headers: getAuthHeaders(),
-    });
-    if (!res.ok) throw new Error('Fetch posts count failed');
-    const data = await res.json();
-    if (data && data.pagination && typeof data.pagination.total_items === 'number') {
-      return data.pagination.total_items;
-    }
-    if (data && Array.isArray(data.posts)) return data.posts.length;
-    return 0;
-  } catch (err) {
-    console.error('Get posts count error:', err);
-    return 0;
-  }
+  const url = authorId 
+    ? `${API_BASE}/posts?page=1&author_id=${authorId}` 
+    : `${API_BASE}/posts?page=1`;
+  const data = await fetchJSON(url);
+  if (data?.pagination?.total_items) return data.pagination.total_items;
+  return Array.isArray(data?.posts) ? data.posts.length : 0;
 }
 
 export async function deletePost(postId: number): Promise<boolean> {
-  try {
-    const res = await fetch(`${API_BASE}/posts/${postId}`, {
-      method: 'DELETE',
-      headers: getAuthHeaders(),
-    });
-    return res.ok;
-  } catch (err) {
-    console.error('Delete post error:', err);
-    return false;
-  }
+  return apiRequest(`${API_BASE}/posts/${postId}`, 'DELETE');
 }
 
 // Helper function to convert File to Base64
@@ -208,154 +189,95 @@ export async function createPost(content: string, mediaUrl?: string): Promise<an
     });
     
     if (!res.ok) {
-         let errorMessage = "Erreur création post";
-         try {
-           const errData = await res.json();
-           errorMessage = errData.error || errorMessage;
-         } catch(e) {}
-         throw new Error(errorMessage);
+      let errorMessage = "Erreur création post";
+      try {
+        const errData = await res.json();
+        errorMessage = errData.error || errorMessage;
+      } catch {
+        // Ignore JSON parse error
+      }
+      throw new Error(errorMessage);
     }
-    return res;
+    return await res.json();
   } catch (err) {
     console.error('Create post error:', err);
     throw err;
   }
 }
 
-// Get Current Logged User Info (from our /api/user route)
+// Get Current Logged User Info
 export async function getCurrentUser(): Promise<User | null> {
-    try {
-        const res = await fetch(`${API_BASE}/user`, {
-            headers: getAuthHeaders()
-        });
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (err) {
-        return null;
-    }
+    return fetchJSON(`${API_BASE}/user`);
 }
 
 // Get User by ID
 export async function getUserById(userId: number): Promise<User | null> {
-    try {
-        const res = await fetch(`${API_BASE}/users/${userId}`, {
-            headers: getAuthHeaders()
-        });
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (err) {
-        console.error('Get user by ID error:', err);
-        return null;
-    }
+    return fetchJSON(`${API_BASE}/users/${userId}`);
 }
 
 // Follow a user
-export async function followUser(userId: number): Promise<boolean> {
+export async function followUser(userId: number) {
     try {
         const res = await fetch(`${API_BASE}/users/${userId}/follow`, {
             method: 'POST',
             headers: getAuthHeaders(),
         });
         if (!res.ok) {
-            if (res.status === 403) {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.error || 'Vous avez bloqué cet utilisateur');
-            }
             const errorData = await res.json().catch(() => ({}));
-            throw new Error(errorData.error || 'Erreur lors du suivi');
+            const message = res.status === 403 
+                ? errorData.error || 'Vous avez bloqué cet utilisateur'
+                : errorData.error || 'Erreur lors du suivi';
+            throw new Error(message);
         }
         return true;
     } catch (err) {
-        if (err instanceof Error) {
-            console.error('Follow user error:', err.message);
-            throw err;
-        }
         console.error('Follow user error:', err);
-        throw new Error('Erreur lors du suivi');
+        throw err;
     }
 }
 
 // Unfollow a user
-export async function unfollowUser(userId: number): Promise<boolean> {
-    try {
-        const res = await fetch(`${API_BASE}/users/${userId}/unfollow`, {
-            method: 'DELETE',
-            headers: getAuthHeaders(),
-        });
-        return res.ok;
-    } catch (err) {
-        console.error('Unfollow user error:', err);
-        return false;
-    }
+export async function unfollowUser(userId: number) {
+    return apiRequest(`${API_BASE}/users/${userId}/unfollow`, 'DELETE');
 }
 
 // Check if current user is following a user
 export async function isFollowingUser(userId: number): Promise<boolean> {
-    try {
-        const res = await fetch(`${API_BASE}/users/${userId}/is-following`, {
-            headers: getAuthHeaders(),
-        });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return data.isFollowing || false;
-    } catch (err) {
-        console.error('Check following status error:', err);
-        return false;
-    }
+    const data = await fetchJSON(`${API_BASE}/users/${userId}/is-following`);
+    return data?.isFollowing || false;
 }
 
 // Get list of users that a specific user is following
 export async function getFollowingUsers(userId: number): Promise<any[]> {
-    try {
-        const res = await fetch(`${API_BASE}/users/${userId}/following`, {
-            headers: getAuthHeaders(),
-        });
-        if (!res.ok) return [];
-        return await res.json();
-    } catch (err) {
-        console.error('Get following users error:', err);
-        return [];
-    }
+    const data = await fetchJSON(`${API_BASE}/users/${userId}/following`);
+    return data || [];
 }
 
-// Update user profile
-export async function updateUserProfile(profileData: {
-    bio?: string;
-    profilePhoto?: string;
-    bannerImage?: string;
-    location?: string;
-    website?: string;
-}): Promise<User | null> {
-    try {
-        const res = await fetch(`${API_BASE}/user/update`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-            body: JSON.stringify(profileData),
-        });
-        if (!res.ok) return null;
-        return await res.json();
-    } catch (err) {
-        console.error('Update profile error:', err);
-        return null;
-    }
-}
-
-// Update user profile (new endpoint)
+// Update user profile (with File support for images)
 export async function updateUserProfileV2(profileData: {
     bio?: string;
-    profilePhoto?: string;
-    bannerImage?: string;
+    profilePhoto?: string | File;
+    bannerImage?: string | File;
     location?: string;
     website?: string;
-}): Promise<any | null> {
+}) {
     try {
+        const data = {
+            ...profileData,
+            profilePhoto: profileData.profilePhoto instanceof File 
+                ? await fileToBase64(profileData.profilePhoto)
+                : profileData.profilePhoto,
+            bannerImage: profileData.bannerImage instanceof File
+                ? await fileToBase64(profileData.bannerImage)
+                : profileData.bannerImage,
+        };
+        
         const res = await fetch(`${API_BASE}/users/profile`, {
             method: 'PUT',
             headers: getAuthHeaders(),
-            body: JSON.stringify(profileData),
+            body: JSON.stringify(data),
         });
-        if (!res.ok) return null;
-        return await res.json();
+        return res.ok ? await res.json() : null;
     } catch (err) {
         console.error('Update profile error:', err);
         return null;
@@ -364,71 +286,24 @@ export async function updateUserProfileV2(profileData: {
 
 // Block a user
 export async function blockUser(userId: number): Promise<boolean> {
-    try {
-        console.log(`Attempting to block user ${userId}`);
-        const res = await fetch(`${API_BASE}/users/${userId}/block`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-        });
-        console.log(`Block response status: ${res.status}`);
-        if (!res.ok) {
-            const error = await res.text();
-            console.error(`Block failed with status ${res.status}:`, error);
-        }
-        return res.ok;
-    } catch (err) {
-        console.error('Block user error:', err);
-        return false;
-    }
+    return apiRequest(`${API_BASE}/users/${userId}/block`, 'POST');
 }
 
 // Unblock a user
 export async function unblockUser(userId: number): Promise<boolean> {
-    try {
-        console.log(`Attempting to unblock user ${userId}`);
-        const res = await fetch(`${API_BASE}/users/${userId}/block`, {
-            method: 'DELETE',
-            headers: getAuthHeaders(),
-        });
-        console.log(`Unblock response status: ${res.status}`);
-        if (!res.ok) {
-            const error = await res.text();
-            console.error(`Unblock failed with status ${res.status}:`, error);
-        }
-        return res.ok;
-    } catch (err) {
-        console.error('Unblock user error:', err);
-        return false;
-    }
+    return apiRequest(`${API_BASE}/users/${userId}/block`, 'DELETE');
 }
 
 // Get list of blocked users
 export async function getBlockedUsers(): Promise<any[]> {
-    try {
-        const res = await fetch(`${API_BASE}/users/blocked-users`, {
-            headers: getAuthHeaders(),
-        });
-        if (!res.ok) return [];
-        return await res.json();
-    } catch (err) {
-        console.error('Get blocked users error:', err);
-        return [];
-    }
+    const data = await fetchJSON(`${API_BASE}/users/blocked-users`);
+    return data || [];
 }
 
 // Check if current user is blocking another user
 export async function isBlockingUser(userId: number): Promise<boolean> {
-    try {
-        const res = await fetch(`${API_BASE}/users/${userId}/is-blocking`, {
-            headers: getAuthHeaders(),
-        });
-        if (!res.ok) return false;
-        const data = await res.json();
-        return data.isBlocking || false;
-    } catch (err) {
-        console.error('Check blocking status error:', err);
-        return false;
-    }
+    const data = await fetchJSON(`${API_BASE}/users/${userId}/is-blocking`);
+    return data?.isBlocking || false;
 }
 
 // Edit a post
@@ -448,7 +323,7 @@ export async function editPost(postId: number, content: string, mediaUrl?: strin
 }
 
 // Create reply to a post
-export async function createReply(postId: number, textContent: string): Promise<any | null> {
+export async function createReply(postId: number, textContent: string) {
     try {
         const res = await fetch(`${API_BASE}/posts/${postId}/replies`, {
             method: 'POST',
@@ -457,75 +332,61 @@ export async function createReply(postId: number, textContent: string): Promise<
         });
         if (!res.ok) {
             if (res.status === 403) {
-                const errorData = await res.json();
-                console.error('Error 403:', errorData.error);
+                const errorData = await res.json().catch(() => ({}));
                 throw new Error(errorData.error || 'Vous avez été bloqué par cet utilisateur');
             }
             return null;
         }
         return await res.json();
     } catch (err) {
-        if (err instanceof Error) {
-            console.error('Create reply error:', err.message);
-            throw err;
-        }
         console.error('Create reply error:', err);
-        return null;
+        throw err;
     }
 }
 
 // Get replies for a post
 export async function getReplies(postId: number): Promise<any[]> {
-    try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/replies`, {
-            headers: getAuthHeaders(),
-        });
-        if (!res.ok) return [];
-        return await res.json();
-    } catch (err) {
-        console.error('Get replies error:', err);
-        return [];
-    }
+    const data = await fetchJSON(`${API_BASE}/posts/${postId}/replies`);
+    return data || [];
 }
 
 // Delete reply
 export async function deleteReply(replyId: number): Promise<boolean> {
+    return apiRequest(`${API_BASE}/replies/${replyId}`, 'DELETE');
+}
+
+// Edit reply
+export async function editReply(replyId: number, textContent: string): Promise<any | null> {
     try {
         const res = await fetch(`${API_BASE}/replies/${replyId}`, {
-            method: 'DELETE',
+            method: 'PUT',
             headers: getAuthHeaders(),
+            body: JSON.stringify({ textContent }),
         });
-        return res.ok;
+        if (!res.ok) return null;
+        return await res.json();
     } catch (err) {
-        console.error('Delete reply error:', err);
-        return false;
+        console.error('Edit reply error:', err);
+        return null;
     }
 }
 
 // Censor a post (admin only)
 export async function censorPost(postId: number): Promise<boolean> {
-    try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/censor`, {
-            method: 'POST',
-            headers: getAuthHeaders(),
-        });
-        return res.ok;
-    } catch (err) {
-        console.error('Censor post error:', err);
-        return false;
-    }
+    return apiRequest(`${API_BASE}/posts/${postId}/censor`, 'POST');
 }
 
 // Uncensor a post (admin only)
 export async function uncensorPost(postId: number): Promise<boolean> {
-    try {
-        const res = await fetch(`${API_BASE}/posts/${postId}/censor`, {
-            method: 'DELETE',
-            headers: getAuthHeaders(),
-        });
-        return res.ok;
-    } catch (err) {
-        console.error('Uncensor post error:', err);
-        return false;
-    }
+    return apiRequest(`${API_BASE}/posts/${postId}/censor`, 'DELETE');
+}
+
+// Censor a reply (admin only)
+export async function censorReply(replyId: number): Promise<boolean> {
+    return apiRequest(`${API_BASE}/replies/${replyId}/censor`, 'POST');
+}
+
+// Uncensor a reply (admin only)
+export async function uncensorReply(replyId: number): Promise<boolean> {
+    return apiRequest(`${API_BASE}/replies/${replyId}/censor`, 'DELETE');
 }

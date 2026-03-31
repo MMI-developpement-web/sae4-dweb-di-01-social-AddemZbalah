@@ -21,26 +21,63 @@ class AuthController extends AbstractController
         UserPasswordHasherInterface $hasher,
         TokenManager $tokenManager
     ): JsonResponse {
-        $data = json_decode($request->getContent(), true);
-        $email = $data['email'] ?? $data['mail'] ?? '';
-        $user = $userRepository->findOneBy(['mail' => $email]);
-        
-        if (!$user) {
-            $user = $userRepository->findOneBy(['name' => $email]);
+        try {
+            $data = json_decode($request->getContent(), true);
+            
+            if (!$data) {
+                return $this->json(['error' => 'JSON invalide'], 400);
+            }
+            
+            if (!isset($data['email'])) {
+                return $this->json(['error' => 'Email requis'], 400);
+            }
+            
+            if (!isset($data['password'])) {
+                return $this->json(['error' => 'Mot de passe requis'], 400);
+            }
+
+            $email = trim($data['email']);
+            $password = $data['password'];
+
+            if (empty($email) || empty($password)) {
+                return $this->json(['error' => 'Email et mot de passe requis'], 400);
+            }
+
+            // Chercher l'utilisateur par email
+            $user = $userRepository->findOneBy(['mail' => $email]);
+            
+            // Si pas trouvé, chercher par nom d'utilisateur
+            if (!$user) {
+                $user = $userRepository->findOneBy(['name' => $email]);
+            }
+
+            // Vérifier l'utilisateur
+            if (!$user) {
+                return $this->json(['error' => 'Utilisateur non trouvé'], 401);
+            }
+
+            // Vérifier le mot de passe
+            if (!$hasher->isPasswordValid($user, $password)) {
+                return $this->json(['error' => 'Mot de passe incorrect'], 401);
+            }
+
+            // Vérifier si l'utilisateur est bloqué
+            if ($user->getIsBlocked()) {
+                return $this->json(['error' => 'Ce compte a été bloqué'], 403);
+            }
+
+            // Générer le token
+            $token = $tokenManager->generateForUser($user);
+            
+            if (!$token) {
+                return $this->json(['error' => 'Erreur lors de la génération du token'], 500);
+            }
+
+            return $this->json(['token' => $token, 'success' => true], 200);
+        } catch (\Throwable $e) {
+            error_log("Login error: " . get_class($e) . " - " . $e->getMessage() . " - " . $e->getFile() . ":" . $e->getLine());
+            return $this->json(['error' => 'Erreur serveur - ' . $e->getMessage()], 500);
         }
-
-        if (!$user || !$hasher->isPasswordValid($user, $data['password'])) {
-            return $this->json(['error' => 'Identifiants invalides'], 401);
-        }
-
-        // Check if user is blocked
-        if ($user->getIsBlocked()) {
-            return $this->json(['error' => 'Ce compte a été bloqué'], 403);
-        }
-
-        $token = $tokenManager->generateForUser($user);
-
-        return $this->json(['token' => $token]);
     }
 
     #[Route('/api/user', name: 'api_user', methods: ['GET'])]

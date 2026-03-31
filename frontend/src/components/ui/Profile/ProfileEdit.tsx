@@ -1,5 +1,44 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
+import { cva } from 'class-variance-authority';
+import { cn } from '../../../lib/utils';
 import { updateUserProfileV2 } from '../../../lib/api';
+
+const inputFieldVariants = cva(
+  'w-full px-3 py-2 border border-gray-300 rounded text-sm focus:outline-none focus:ring-2 focus:ring-blue-500',
+);
+
+const messageVariants = cva('text-sm font-medium', {
+  variants: {
+    type: {
+      success: 'text-green-600',
+      error: 'text-red-600',
+    },
+  },
+});
+
+const buttonVariants = cva(
+  'flex-1 px-4 py-2 rounded font-medium transition-colors disabled:opacity-50',
+  {
+    variants: {
+      intent: {
+        primary: 'bg-blue-500 text-white hover:bg-blue-600',
+        secondary: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
+      },
+    },
+  },
+);
+
+const uploadButtonVariants = cva(
+  'w-full px-4 py-2 rounded font-medium transition-colors border-2 border-dashed cursor-pointer hover:border-blue-500 hover:bg-blue-50',
+  {
+    variants: {
+      state: {
+        empty: 'border-gray-300 text-gray-600',
+        filled: 'border-green-500 text-green-700 bg-green-50',
+      },
+    },
+  },
+);
 
 interface ProfileEditProps {
   user: any;
@@ -13,8 +52,33 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
   const [website, setWebsite] = useState(user?.website || '');
   const [profilePhoto, setProfilePhoto] = useState(user?.profilePhoto || '');
   const [bannerImage, setBannerImage] = useState(user?.bannerImage || '');
+  const [profilePhotoFile, setProfilePhotoFile] = useState<File | null>(null);
+  const [bannerImageFile, setBannerImageFile] = useState<File | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [message, setMessage] = useState('');
+  
+  const profilePhotoInputRef = useRef<HTMLInputElement>(null);
+  const bannerImageInputRef = useRef<HTMLInputElement>(null);
+
+  const handleProfilePhotoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setProfilePhotoFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setProfilePhoto(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const handleBannerImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setBannerImageFile(file);
+      const reader = new FileReader();
+      reader.onload = () => setBannerImage(reader.result as string);
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSave = async () => {
     setIsLoading(true);
@@ -24,8 +88,8 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
       bio: bio || undefined,
       location: location || undefined,
       website: website || undefined,
-      profilePhoto: profilePhoto || undefined,
-      bannerImage: bannerImage || undefined,
+      profilePhoto: profilePhotoFile || profilePhoto || undefined,
+      bannerImage: bannerImageFile || bannerImage || undefined,
     });
 
     if (result && result.success) {
@@ -43,69 +107,89 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg max-h-screen overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Modifier le profil</h2>
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium mb-1">Bio</label>
+            <label className="block text-sm font-medium mb-2">Bio</label>
             <textarea
               value={bio}
               onChange={(e) => setBio(e.target.value)}
               maxLength={160}
-              className="w-full p-2 border border-gray-300 rounded text-sm"
+              className={cn(inputFieldVariants())}
               rows={3}
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Localisation</label>
+            <label className="block text-sm font-medium mb-2">Localisation</label>
             <input
               type="text"
               value={location}
               onChange={(e) => setLocation(e.target.value)}
               maxLength={100}
-              className="w-full p-2 border border-gray-300 rounded text-sm"
+              className={cn(inputFieldVariants())}
               placeholder="Ex: Paris, France"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Site Web</label>
+            <label className="block text-sm font-medium mb-2">Site Web</label>
             <input
               type="url"
               value={website}
               onChange={(e) => setWebsite(e.target.value)}
               maxLength={500}
-              className="w-full p-2 border border-gray-300 rounded text-sm"
+              className={cn(inputFieldVariants())}
               placeholder="https://exemple.com"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Photo de profil (URL)</label>
+            <label className="block text-sm font-medium mb-2">Photo de profil</label>
+            {profilePhoto && (
+              <img src={profilePhoto} alt="Aperçu" className="w-20 h-20 rounded-full object-cover mb-2 border border-gray-300" />
+            )}
             <input
-              type="url"
-              value={profilePhoto}
-              onChange={(e) => setProfilePhoto(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-              placeholder="https://exemple.com/photo.jpg"
+              ref={profilePhotoInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleProfilePhotoSelect}
+              className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => profilePhotoInputRef.current?.click()}
+              className={cn(uploadButtonVariants({ state: profilePhotoFile ? 'filled' : 'empty' }))}
+            >
+              {profilePhotoFile ? `✓ ${profilePhotoFile.name}` : '📁 Choisir une photo'}
+            </button>
           </div>
 
           <div>
-            <label className="block text-sm font-medium mb-1">Bannière (URL)</label>
+            <label className="block text-sm font-medium mb-2">Bannière</label>
+            {bannerImage && (
+              <img src={bannerImage} alt="Aperçu" className="w-full h-20 object-cover mb-2 rounded border border-gray-300" />
+            )}
             <input
-              type="url"
-              value={bannerImage}
-              onChange={(e) => setBannerImage(e.target.value)}
-              className="w-full p-2 border border-gray-300 rounded text-sm"
-              placeholder="https://exemple.com/banniere.jpg"
+              ref={bannerImageInputRef}
+              type="file"
+              accept="image/*"
+              onChange={handleBannerImageSelect}
+              className="hidden"
             />
+            <button
+              type="button"
+              onClick={() => bannerImageInputRef.current?.click()}
+              className={cn(uploadButtonVariants({ state: bannerImageFile ? 'filled' : 'empty' }))}
+            >
+              {bannerImageFile ? `✓ ${bannerImageFile.name}` : '📁 Choisir une bannière'}
+            </button>
           </div>
 
           {message && (
-            <div className={`text-sm font-medium ${message.includes('✓') ? 'text-green-600' : 'text-red-600'}`}>
+            <div className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
               {message}
             </div>
           )}
@@ -115,14 +199,14 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
           <button
             onClick={onClose}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50"
+            className={cn(buttonVariants({ intent: 'secondary' }))}
           >
             Annuler
           </button>
           <button
             onClick={handleSave}
             disabled={isLoading}
-            className="flex-1 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
+            className={cn(buttonVariants({ intent: 'primary' }))}
           >
             {isLoading ? 'Enregistrement...' : 'Enregistrer'}
           </button>

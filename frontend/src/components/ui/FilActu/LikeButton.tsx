@@ -71,7 +71,7 @@ export default function LikeButton({
         setLiked(data.liked);
         setCount(data.likes_count);
       } else if (response.status === 403) {
-        const errorData = await response.json();
+        await response.json();
         console.error('Vous avez été bloqué par ce utilisateur');
         alert('Vous avez été bloqué par cet utilisateur');
       } else {

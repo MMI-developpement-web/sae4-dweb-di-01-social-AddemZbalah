@@ -151,18 +151,6 @@ const avatarImageVariants = cva("rounded-full object-cover ring-1 ring-primary/3
   },
 });
 
-const authorNameVariants = cva("font-semibold text-secondary leading-tight", {
-  variants: {
-    size: {
-      sm: "text-sm",
-      md: "text-base",
-    },
-  },
-  defaultVariants: {
-    size: "sm",
-  },
-});
-
 const authorMetaVariants = cva("text-secondary/70", {
   variants: {
     size: {

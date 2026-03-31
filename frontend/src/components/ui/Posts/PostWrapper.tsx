@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import Post from '../FilActu/post';
 import PostEdit from './PostEdit';
 import ReplyForm from './ReplyForm';
-import { getReplies } from '../../../lib/api';
+import ReplyEdit from './ReplyEdit';
+import { getReplies, deleteReply, getCurrentUser } from '../../../lib/api';
 
 interface PostWrapperProps {
   postId: number;
@@ -50,12 +51,23 @@ export default function PostWrapper({
   const [replies, setReplies] = useState<any[]>([]);
   const [replyCount, setReplyCount] = useState(commentCount || 0);
   const [loadingReplies, setLoadingReplies] = useState(false);
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [editingReplyId, setEditingReplyId] = useState<number | null>(null);
 
   // Sync state with props when they change
   useEffect(() => {
     setCurrentContent(content);
     setCurrentMediaUrl(mediaUrl);
   }, [content, mediaUrl]);
+
+  // Load current user
+  useEffect(() => {
+    const loadUser = async () => {
+      const user = await getCurrentUser();
+      setCurrentUser(user);
+    };
+    loadUser();
+  }, []);
 
   // Fetch replies on mount or when showReplies changes
   useEffect(() => {
@@ -88,6 +100,23 @@ export default function PostWrapper({
     } catch (error) {
       console.error('Error reloading replies:', error);
     }
+  };
+
+  const handleDeleteReply = async (replyId: number) => {
+    if (window.confirm('Êtes-vous sûr de vouloir supprimer cette réponse ?')) {
+      const success = await deleteReply(replyId);
+      if (success) {
+        setReplies((prev) => prev.filter((r) => r.id !== replyId));
+        setReplyCount((prev) => prev - 1);
+      }
+    }
+  };
+
+  const handleSaveEditedReply = (updatedReply: any) => {
+    setReplies((prev) =>
+      prev.map((r) => (r.id === updatedReply.id ? updatedReply : r))
+    );
+    setEditingReplyId(null);
   };
 
   const handleEditSave = (updatedPost: any) => {
@@ -164,16 +193,42 @@ export default function PostWrapper({
               <p className="text-gray-400 text-sm">Chargement des réponses...</p>
             ) : replies.length > 0 ? (
               replies.map((reply: any) => (
-                <div key={reply.id} className="pl-4 pt-3 border-l border-gray-200">
-                  <div className="flex items-center gap-2 mb-2">
-                    {reply.author?.profilePhoto && (
-                      <img src={reply.author.profilePhoto} alt="avatar" className="w-6 h-6 rounded-full" />
+                <div key={reply.id} className="pl-4 pt-3 border-l border-gray-200 flex justify-between items-start gap-2">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-2">
+                      {reply.author?.profilePhoto && (
+                        <img src={reply.author.profilePhoto} alt="avatar" className="w-6 h-6 rounded-full" />
+                      )}
+                      <span className="font-bold text-sm text-white">{reply.author?.name || 'Utilisateur'}</span>
+                      <span className="text-gray-500 text-xs">@{reply.author?.mail?.split('@')[0] || 'utilisateur'}</span>
+                      <span className="text-gray-400 text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
+                    </div>
+                    {reply.isCensored ? (
+                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 my-2 text-center opacity-80 decoration-slice">
+                        <p className="text-red-700 text-xs font-semibold">🚫 Cette réponse a été censurée par un modérateur.</p>
+                      </div>
+                    ) : (
+                      <p className="text-white text-sm">{reply.textContent}</p>
                     )}
-                    <span className="font-bold text-sm text-white">{reply.author?.name || 'Utilisateur'}</span>
-                    <span className="text-gray-500 text-xs">@{reply.author?.mail?.split('@')[0] || 'utilisateur'}</span>
-                    <span className="text-gray-400 text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
                   </div>
-                  <p className="text-white text-sm">{reply.textContent}</p>
+                  {currentUser && reply.author?.id === currentUser.id && !reply.isCensored && (
+                    <div className="flex gap-1">
+                      <button
+                        onClick={() => setEditingReplyId(reply.id)}
+                        className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 rounded px-2 py-1 text-xs"
+                        title="Modifier la réponse"
+                      >
+                        ✏️
+                      </button>
+                      <button
+                        onClick={() => handleDeleteReply(reply.id)}
+                        className="text-red-500 hover:text-red-600 hover:bg-red-500/10 rounded px-2 py-1 text-xs"
+                        title="Supprimer la réponse"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (
@@ -181,6 +236,15 @@ export default function PostWrapper({
             )}
           </div>
         </div>
+      )}
+
+      {editingReplyId && (
+        <ReplyEdit
+          replyId={editingReplyId}
+          initialContent={replies.find((r) => r.id === editingReplyId)?.textContent || ''}
+          onClose={() => setEditingReplyId(null)}
+          onSave={handleSaveEditedReply}
+        />
       )}
     </>
   );

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { cva, type VariantProps } from 'class-variance-authority';
 import { cn } from '../../../lib/utils';
-import { censorPost, uncensorPost } from '../../../lib/api';
+import { censorPost, uncensorPost, censorReply, uncensorReply } from '../../../lib/api';
 
 const censorButtonVariants = cva(
   'px-3 py-1 rounded text-xs font-medium transition-colors disabled:opacity-50',
@@ -18,27 +18,34 @@ const censorButtonVariants = cva(
   },
 );
 
-interface PostCensorProps extends VariantProps<typeof censorButtonVariants> {
-  postId: number;
+interface ContentCensorProps extends VariantProps<typeof censorButtonVariants> {
+  contentId: number;
+  type: 'post' | 'reply';
   isCensored: boolean;
   onCensorChange?: (isCensored: boolean) => void;
 }
 
-export default function PostCensor({ postId, isCensored: initialCensored, onCensorChange }: PostCensorProps) {
+export default function ContentCensor({
+  contentId,
+  type,
+  isCensored: initialCensored,
+  onCensorChange,
+}: ContentCensorProps) {
   const [isCensored, setIsCensored] = useState(initialCensored);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleToggle = async () => {
     setIsLoading(true);
 
+    let success = false;
     if (isCensored) {
-      const success = await uncensorPost(postId);
+      success = type === 'post' ? await uncensorPost(contentId) : await uncensorReply(contentId);
       if (success) {
         setIsCensored(false);
         onCensorChange?.(false);
       }
     } else {
-      const success = await censorPost(postId);
+      success = type === 'post' ? await censorPost(contentId) : await censorReply(contentId);
       if (success) {
         setIsCensored(true);
         onCensorChange?.(true);
@@ -55,7 +62,7 @@ export default function PostCensor({ postId, isCensored: initialCensored, onCens
       className={cn(censorButtonVariants({ status: isCensored ? 'censored' : 'active' }))}
       title={isCensored ? 'Décensurer' : 'Censurer'}
     >
-      {isLoading ? '...' : isCensored ? '⚠️ Censuré' : '📢 Censurer'}
+      {isCensored ? '✓ Censuré' : '🚫 Actif'}
     </button>
   );
 }

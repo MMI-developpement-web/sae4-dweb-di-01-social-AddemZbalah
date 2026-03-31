@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react";
+import { cva } from "class-variance-authority";
+import { cn } from "../../lib/utils";
 import PostWrapper from "../ui/Posts/PostWrapper";
 import ProfileEdit from "../ui/Profile/ProfileEdit";
 import BlockButton from "../ui/Profile/BlockButton";
@@ -9,6 +11,21 @@ import { useNavigate, useParams } from "react-router-dom";
 
 // Default banner image asset
 const defaultBannerImage = "https://images.unsplash.com/photo-1449844908441-8829872d2607?w=1200&h=250&fit=crop";
+
+const followButtonVariants = cva(
+  'px-6 py-2 rounded-full font-semibold transition-all disabled:opacity-60',
+  {
+    variants: {
+      status: {
+        following: 'border border-purple-500 text-purple-400 hover:bg-purple-500/10',
+        notFollowing: 'bg-purple-500 text-white hover:bg-purple-600',
+      },
+    },
+    defaultVariants: {
+      status: 'notFollowing',
+    },
+  },
+);
 
 export default function Profil() {
   const { userId } = useParams<{ userId?: string }>();
@@ -350,12 +367,8 @@ export default function Profil() {
                 <>
                   <button
                     onClick={handleFollowToggle}
-                    disabled={isLoadingFollow || isBlocking}
-                    className={`px-6 py-2 rounded-full font-semibold transition-all ${
-                      isFollowing
-                        ? "border border-purple-500 text-purple-400 hover:bg-purple-500/10"
-                        : "bg-purple-500 text-white hover:bg-purple-600"
-                    } disabled:opacity-60`}
+                    disabled={isLoadingFollow || (isBlocking ?? false)}
+                    className={cn(followButtonVariants({ status: isFollowing ? 'following' : 'notFollowing' }))}
                     title={isBlocking ? "Vous avez bloqué cet utilisateur" : ""}
                   >
                     {isLoadingFollow ? "..." : isFollowing ? "Ne plus suivre" : "Suivre"}
