@@ -3,6 +3,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../../lib/utils";
 import { logout } from "../../../lib/api";
+import { useStore } from "../../../store/StoreContext";
 
 const navItemVariants = cva(
 	"flex items-center gap-4 rounded-xl px-4 py-4 text-secondary transition-colors duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary",
@@ -83,11 +84,13 @@ interface NavProps {
 
 export default function Nav({ id, onNavigate, mode, position, drawerState, className }: NavProps) {
 	const navigate = useNavigate();
+        const { logout: storeLogout } = useStore();
 
-	const handleLogout = () => {
-		logout();
-		navigate("/connexion");
-	};
+        const handleLogout = () => {
+                logout();
+                storeLogout();
+                navigate("/connexion");
+        };
 
 	return (
 		<aside id={id} className={cn(navContainerVariants({ mode, position, drawerState }), className)}>

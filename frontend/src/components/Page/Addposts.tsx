@@ -64,9 +64,9 @@ export default function Addposts() {
   if (isLoading) {
     return (
       <main className="flex min-h-screen items-start justify-center bg-connexion p-4 sm:p-8">
-        <div className="flex items-center justify-center">
+        <section className="flex items-center justify-center">
           <p className="text-secondary">Chargement...</p>
-        </div>
+        </section>
       </main>
     );
   }
@@ -108,11 +108,11 @@ export default function Addposts() {
 
           <AddPosts onMediaChange={setMediaFile} />
 
-          <div className="flex justify-center">
+          <section className="flex justify-center">
             <ConnexionBtn type="submit" variant="lavender" size="lg" className="w-full max-w-md text-base">
               Publier
             </ConnexionBtn>
-          </div>
+          </section>
         </form>
       </article>
     </main>

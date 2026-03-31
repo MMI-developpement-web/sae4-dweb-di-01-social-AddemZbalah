@@ -57,7 +57,7 @@ export default function Inscription() {
           <fieldset className="flex w-full flex-col gap-6 py-8">
             <legend className="sr-only">Informations d'inscription</legend>
 
-            <div className="flex flex-col gap-2.5">
+            <section className="flex flex-col gap-2.5">
               <label htmlFor="username" className="sr-only">
                 Nom d'utilisateur
               </label>
@@ -74,9 +74,9 @@ export default function Inscription() {
                 required
                 aria-label="Nom d'utilisateur"
               />
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-2.5">
+            <section className="flex flex-col gap-2.5">
               <label htmlFor="email" className="sr-only">
                 Adresse e-mail
               </label>
@@ -93,9 +93,9 @@ export default function Inscription() {
                 required
                 aria-label="Adresse e-mail"
               />
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-2.5">
+            <section className="flex flex-col gap-2.5">
               <label htmlFor="password" className="sr-only">
                 Mot de passe
               </label>
@@ -112,11 +112,11 @@ export default function Inscription() {
                 required
                 aria-label="Mot de passe"
               />
-            </div>
+            </section>
           </fieldset>
 
-          <div className="flex w-full flex-col gap-3">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-2">
+          <section className="flex w-full flex-col gap-3">
+            <section className="grid grid-cols-2 gap-x-3 gap-y-2">
               <ConnexionVerif status={hasMinLength ? "valid" : "invalid"}>
                 12 caracteres minimum
               </ConnexionVerif>
@@ -129,10 +129,10 @@ export default function Inscription() {
               <ConnexionVerif status={hasSpecialChar ? "valid" : "invalid"}>
                 1 caractere special minimum
               </ConnexionVerif>
-            </div>
-          </div>
+            </section>
+          </section>
 
-          <div className="mt-6 w-full">
+          <section className="mt-6 w-full">
             <ConnexionBtn
               variant="lavender"
               size="full"
@@ -141,15 +141,15 @@ export default function Inscription() {
             >
               S'inscrire
             </ConnexionBtn>
-          </div>
+          </section>
 
-          <div className="flex w-full items-center justify-center gap-2 py-4" role="separator" aria-label="ou">
+          <section className="flex w-full items-center justify-center gap-2 py-4" role="separator" aria-label="ou">
             <hr className="w-24 border-t border-secondary/50" />
             <span className="text-sm font-semibold text-secondary">ou</span>
             <hr className="w-24 border-t border-secondary/50" />
-          </div>
+          </section>
 
-          <div className="flex w-full flex-col items-center gap-2.5">
+          <section className="flex w-full flex-col items-center gap-2.5">
             <p className="text-sm font-semibold text-secondary text-center">
               Deja un compte ?
             </p>
@@ -161,7 +161,7 @@ export default function Inscription() {
             >
               Se connecter
             </ConnexionBtn>
-          </div>
+          </section>
         </form>
       </section>
     </main>

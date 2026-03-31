@@ -2,9 +2,11 @@ import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
 import InputLogin from "../ui/Connexion-Inscription/FormInputs";
-import { login } from "../../lib/api";
+import { login, getCurrentUser } from "../../lib/api";
+import { useStore } from "../../store/StoreContext";
 
 export default function Connexion() {
+  const { login: storeLogin } = useStore();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
@@ -23,6 +25,10 @@ export default function Connexion() {
       
       if (result && result.token) {
           console.log('Login successful, redirecting to fil');
+          const user = await getCurrentUser();
+          if (user) {
+            storeLogin(user);
+          }
           navigate("/fil");
       } else if (result?.error) {
           setError(result.error);
@@ -57,12 +63,12 @@ export default function Connexion() {
             <legend className="sr-only">Informations de connexion</legend>
 
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/50">
+              <section className="p-3 rounded-lg bg-red-500/10 border border-red-500/50">
                 <p className="text-sm font-medium text-red-400">{error}</p>
-              </div>
+              </section>
             )}
 
-            <div className="flex flex-col gap-2.5">
+            <section className="flex flex-col gap-2.5">
               <label htmlFor="email" className="sr-only">
                 Adresse e-mail
               </label>
@@ -80,9 +86,9 @@ export default function Connexion() {
                 aria-label="Adresse e-mail"
                 disabled={isLoading}
               />
-            </div>
+            </section>
 
-            <div className="flex flex-col gap-2.5">
+            <section className="flex flex-col gap-2.5">
               <label htmlFor="password" className="sr-only">
                 Mot de passe
               </label>
@@ -100,10 +106,10 @@ export default function Connexion() {
                 aria-label="Mot de passe"
                 disabled={isLoading}
               />
-            </div>
+            </section>
           </fieldset>
 
-          <div className="flex w-full flex-col items-center gap-2.5">
+          <section className="flex w-full flex-col items-center gap-2.5">
             <ConnexionBtn
               variant="lavender"
               size="full"
@@ -120,15 +126,15 @@ export default function Connexion() {
             >
               Mot de passe oublie ?
             </button>
-          </div>
+          </section>
 
-          <div className="flex w-full items-center justify-center gap-2 py-4" role="separator" aria-label="ou">
+          <section className="flex w-full items-center justify-center gap-2 py-4" role="separator" aria-label="ou">
             <hr className="w-24 border-t border-secondary/50" />
             <span className="text-sm font-semibold text-secondary">ou</span>
             <hr className="w-24 border-t border-secondary/50" />
-          </div>
+          </section>
 
-          <div className="flex w-full flex-col items-center gap-2.5">
+          <section className="flex w-full flex-col items-center gap-2.5">
             <p className="text-sm font-semibold text-secondary text-center">
               Pas encore de compte ?
             </p>
@@ -140,7 +146,7 @@ export default function Connexion() {
             >
               Creer un compte
             </ConnexionBtn>
-          </div>
+          </section>
         </form>
       </section>
     </main>

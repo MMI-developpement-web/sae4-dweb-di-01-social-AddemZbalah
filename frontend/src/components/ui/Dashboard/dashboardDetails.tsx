@@ -76,11 +76,11 @@ export default function DashboardDetails({
 }: StatCardProps) {
   return (
     <article className={cn(statCardVariants({ size }))}>
-      <div className={cn(iconContainerVariants({ size }))}>
-        <div className={cn(iconWrapperVariants({ size }))} aria-hidden="true">
+      <section className={cn(iconContainerVariants({ size }))}>
+        <section className={cn(iconWrapperVariants({ size }))} aria-hidden="true">
           {icon}
-        </div>
-      </div>
+        </section>
+      </section>
 
       <p className={cn(labelVariants({ size }))}>{label}</p>
 

@@ -4,7 +4,8 @@ import { cn } from "../../lib/utils";
 import PostWrapper from "../ui/Posts/PostWrapper";
 import Nav from "../ui/Navbar/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
-import { getPosts, deletePost, getCurrentUser } from "../../lib/api";
+import { getPosts, deletePost } from "../../lib/api";
+import { useStore } from "../../store/StoreContext";
 
 
 const SUGGESTED_USERS: SuggestionUser[] = [
@@ -40,37 +41,19 @@ const refreshButtonVariants = cva(
 );
 
 export default function Fil() {
+  const { posts, setPosts, currentUser, removePost } = useStore();
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [posts, setPosts] = useState<any[]>([]);
-  const [currentUser, setCurrentUser] = useState<any>(undefined);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [autoRefreshInterval, setAutoRefreshInterval] = useState<number | null>(
-    localStorage.getItem("autoRefreshInterval") 
-      ? parseInt(localStorage.getItem("autoRefreshInterval")!) 
+    localStorage.getItem("autoRefreshInterval")
+      ? parseInt(localStorage.getItem("autoRefreshInterval")!)
       : null
   );
   const navId = useId();
   const observerTarget = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    async function fetchUser() {
-      try {
-        const user = await getCurrentUser();
-        if (user) {
-          setCurrentUser(user);
-        } else {
-          setCurrentUser(null);
-        }
-      } catch (err) {
-        console.error("Failed to load user:", err);
-        setCurrentUser(null);
-      }
-    }
-    fetchUser();
-  }, []);
 
   const fetchPosts = async (page: number = 1) => {
     try {
@@ -187,7 +170,7 @@ export default function Fil() {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce tweet ?")) {
       const success = await deletePost(postId);
       if (success) {
-        setPosts((currentPosts) => currentPosts.filter((post) => post.id !== postId));
+        removePost(postId);
       } else {
         alert("Erreur lors de la suppression du post.");
       }
@@ -197,7 +180,7 @@ export default function Fil() {
   return (
     <>
       {/* Backdrop mobile — scrim derrière le drawer */}
-      <div
+      <section
         className={
           isSidebarOpen
             ? "fixed inset-0 z-30 bg-black/55 transition-opacity duration-300 lg:hidden pointer-events-auto opacity-100"
@@ -264,9 +247,9 @@ export default function Fil() {
           aria-label="Posts"
         >
           {/* Bouton de rafraîchissement et menu des options */}
-          <div className="sticky top-0 z-10 border-b border-primary/20 bg-fil/95 backdrop-blur px-4 py-3 flex items-center justify-between">
+          <section className="sticky top-0 z-10 border-b border-primary/20 bg-fil/95 backdrop-blur px-4 py-3 flex items-center justify-between">
             <h2 className="text-lg font-bold text-primary">Fil d'actualité</h2>
-            <div className="flex items-center gap-2">
+            <section className="flex items-center gap-2">
               {/* Menu de rafraîchissement automatique */}
               <select
                 value={autoRefreshInterval || ""}
@@ -301,8 +284,8 @@ export default function Fil() {
                 </svg>
                 <span className="hidden sm:inline">Rafraîchir</span>
               </button>
-            </div>
-          </div>
+            </section>
+          </section>
 
           {/* Liste des posts provenant de l'API */}
           <ul className="flex flex-col" role="list">
@@ -317,11 +300,11 @@ export default function Fil() {
                     authorAvatar={post.author?.profilePhoto || post.author?.avatar || `https://api.dicebear.com/7.x/avataaars/svg?seed=${post.author?.name || "User"}`}
                     timestamp={post.createdAt ? new Date(post.createdAt).toLocaleDateString("fr-FR", {day: "numeric", month: "short", hour: "2-digit", minute: "2-digit"}) : "Date inconnue"}
                     content={post.content || ""}
-                    mediaUrl={post.mediaUrl}
+                      mediaUrl={post.mediaUrl || undefined}
                     commentCount={post.replies || 0}
                     shareCount={0}
                     isCensored={post.isCensored || false}
-                    isCurrentUserAuthor={currentUser && post.author?.id === currentUser.id}
+                      isCurrentUserAuthor={!!(currentUser && post.author?.id === currentUser.id)}
                     isAuthorBlocked={post.isAuthorBlocked || false}
                     onComment={() => {}}
                     onShare={() => {}}
@@ -344,17 +327,17 @@ export default function Fil() {
           </ul>
 
           {/* Infinite scroll target */}
-          <div ref={observerTarget} className="py-8 text-center">
+          <section ref={observerTarget} className="py-8 text-center">
             {isLoadingMore && (
-              <div className="flex items-center justify-center gap-2">
-                <div className="h-4 w-4 animate-spin rounded-full border-2 border-gray-600 border-t-secondary" />
+              <section className="flex items-center justify-center gap-2">
+                <section className="h-4 w-4 animate-spin rounded-full border-2 border-gray-600 border-t-secondary" />
                 <span className="text-secondary/70">Chargement...</span>
-              </div>
+              </section>
             )}
             {!isLoadingMore && !hasMore && posts.length > 0 && (
               <p className="text-xs text-secondary/50">Fin du fil</p>
             )}
-          </div>
+          </section>
         </section>
 
         {/* Colonne droite — desktop uniquement */}

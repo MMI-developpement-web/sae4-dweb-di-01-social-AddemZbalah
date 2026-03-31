@@ -14,6 +14,8 @@ import Settings from './routes/settings';
 import Profil from './routes/profil';
 import Root from './routes/root';
 
+import { StoreProvider } from './store/StoreContext';
+
 const router = createBrowserRouter([
   {
     path: '/',
@@ -71,6 +73,8 @@ const router = createBrowserRouter([
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <StoreProvider>
+      <RouterProvider router={router} />
+    </StoreProvider>
   </React.StrictMode>,
 );

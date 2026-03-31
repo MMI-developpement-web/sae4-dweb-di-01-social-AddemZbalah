@@ -74,7 +74,7 @@ export default function Dashboard() {
   return (
     <>
       {/* Backdrop mobile */}
-      <div
+      <section
         className={cn(
           "fixed inset-0 z-30 bg-black/55 transition-opacity duration-300 lg:hidden",
           isSidebarOpen ? "pointer-events-auto opacity-100" : "pointer-events-none opacity-0"
@@ -109,7 +109,7 @@ export default function Dashboard() {
         />
       </header>
 
-      <div className="flex h-screen overflow-hidden bg-page-dark">
+      <section className="flex h-screen overflow-hidden bg-page-dark">
 
         {/* ── Sidebar ── */}
         <aside
@@ -189,12 +189,12 @@ export default function Dashboard() {
 
           {/* Content Moderation Section */}
           <section className="mt-12 lg:mt-16" aria-label="Modération du contenu">
-            <div className="bg-primary/10 rounded-lg p-6 border border-primary/30">
+            <section className="bg-primary/10 rounded-lg p-6 border border-primary/30">
               <PostModeration />
-            </div>
+            </section>
           </section>
         </main>
-      </div>
+      </section>
     </>
   );
 }
