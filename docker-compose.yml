@@ -9,6 +9,11 @@ services:
       - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
       - ./backend:/app/backend
       - ./frontend:/app/frontend
+    depends_on:
+      sae-backend:
+        condition: service_started
+      sae-frontend:
+        condition: service_started
 
   sae-frontend:
     build: 
@@ -29,6 +34,9 @@ services:
       - "9000:9000"
     volumes:
       - ./backend:/app/backend
+    depends_on:
+      sae-mysql:
+        condition: service_started
 
   sae-mysql:
     image: mysql:8

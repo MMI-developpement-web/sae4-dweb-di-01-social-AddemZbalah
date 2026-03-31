@@ -10,6 +10,7 @@ use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Serializer\Annotation\Groups;
+use App\Entity\Reply;
 
 #[ORM\Entity(repositoryClass: UserRepository::class)]
 #[ORM\Table(name: '`user`')]
@@ -102,6 +103,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     #[ORM\InverseJoinColumn(name: 'user_target', referencedColumnName: 'id', onDelete: 'CASCADE')]
     private Collection $blockedUsers;
 
+    /**
+     * @var Collection<int, Reply>
+     */
+    #[ORM\OneToMany(targetEntity: Reply::class, mappedBy: 'author', cascade: ['remove'])]
+    private Collection $replies;
+
     public function __construct()
     {
         $this->posts = new ArrayCollection();
@@ -109,6 +116,7 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->following = new ArrayCollection();
         $this->followers = new ArrayCollection();
         $this->blockedUsers = new ArrayCollection();
+        $this->replies = new ArrayCollection();
     }
 
     public function __toString(): string
@@ -435,6 +443,35 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
     public function setIsPrivate(bool $isPrivate): static
     {
         $this->isPrivate = $isPrivate;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection<int, Reply>
+     */
+    public function getReplies(): Collection
+    {
+        return $this->replies;
+    }
+
+    public function addReply(Reply $reply): static
+    {
+        if (!$this->replies->contains($reply)) {
+            $this->replies->add($reply);
+            $reply->setAuthor($this);
+        }
+
+        return $this;
+    }
+
+    public function removeReply(Reply $reply): static
+    {
+        if ($this->replies->removeElement($reply)) {
+            if ($reply->getAuthor() === $this) {
+                $reply->setAuthor(null);
+            }
+        }
 
         return $this;
     }
