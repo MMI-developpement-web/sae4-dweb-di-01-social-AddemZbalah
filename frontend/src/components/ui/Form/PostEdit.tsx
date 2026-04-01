@@ -112,7 +112,11 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
           <div>
             <label className="block text-sm font-medium mb-2">Média (optionnel)</label>
             {mediaUrl && (
-              <img src={mediaUrl} alt="Aperçu du média" className="w-full h-40 object-cover mb-2 rounded border border-gray-300" />
+              mediaUrl.match(/\.(mp4|webm|ogg)$/i) || mediaUrl.match(/^data:video\//i) ? (
+                <video src={mediaUrl} controls className="w-full h-40 object-cover mb-2 rounded border border-gray-300" />
+              ) : (
+                <img src={mediaUrl} alt="Aperçu du média" className="w-full h-40 object-cover mb-2 rounded border border-gray-300" />
+              )
             )}
             <input
               ref={mediaInputRef}
