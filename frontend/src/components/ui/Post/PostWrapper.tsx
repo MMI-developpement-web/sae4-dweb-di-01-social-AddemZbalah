@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import Post from '../FilActu/post';
-import PostEdit from './PostEdit';
-import ReplyForm from './ReplyForm';
-import ReplyEdit from './ReplyEdit';
+import Post from './post';
+import PostEdit from '../Form/PostEdit';
+import ReplyForm from '../Form/ReplyForm';
+import ReplyEdit from '../Form/ReplyEdit';
 import { getReplies, deleteReply, getCurrentUser } from '../../../lib/api';
 
 interface PostWrapperProps {

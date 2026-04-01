@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
-import PostWrapper from "../ui/Posts/PostWrapper";
-import ProfileEdit from "../ui/Profile/ProfileEdit";
-import BlockButton from "../ui/Profile/BlockButton";
-import BlockedUsersList from "../ui/Profile/BlockedUsersList";
-import FollowingUsersList from "../ui/Profile/FollowingUsersList";
+import PostWrapper from "../ui/Post/PostWrapper";
+import ProfileEdit from "../ui/Form/ProfileEdit";
+import BlockButton from "../ui/Button/BlockButton";
+import BlockedUsersList from "../ui/List/BlockedUsersList";
+import FollowingUsersList from "../ui/List/FollowingUsersList";
 import { getPosts, deletePost, getCurrentUser, getUserById, followUser, unfollowUser, isFollowingUser, isBlockingUser } from "../../lib/api";
 import { useNavigate, useParams } from "react-router-dom";
 

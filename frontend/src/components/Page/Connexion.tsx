@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
-import InputLogin from "../ui/Connexion-Inscription/FormInputs";
+import ConnexionBtn from "../ui/Button/Connexion-Inscription_Btn";
+import InputLogin from "../ui/Form/FormInputs";
 import { login, getCurrentUser } from "../../lib/api";
 import { useStore } from "../../store/StoreContext";
 

@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
-import InputLogin from "../ui/Connexion-Inscription/FormInputs";
-import ConnexionVerif from "../ui/Connexion-Inscription/ConnexionVerif";
+import ConnexionBtn from "../ui/Button/Connexion-Inscription_Btn";
+import InputLogin from "../ui/Form/FormInputs";
+import ConnexionVerif from "../ui/Form/ConnexionVerif";
 import { register } from "../../lib/api";
 
 export default function Inscription() {

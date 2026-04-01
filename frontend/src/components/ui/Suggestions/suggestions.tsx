@@ -1,6 +1,6 @@
 import { cva, type VariantProps } from "class-variance-authority";
 import { cn } from "../../../lib/utils";
-import ConnexionBtn from "../Connexion-Inscription/Connexion-Inscription_Btn";
+import ConnexionBtn from "../Button/Connexion-Inscription_Btn";
 
 const FALLBACK_AVATAR = "https://www.figma.com/api/mcp/asset/db2a1971-280d-4846-b397-f3d516d1f6a4";
 

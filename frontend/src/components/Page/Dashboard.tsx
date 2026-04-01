@@ -4,7 +4,7 @@ import { NavLink } from "react-router-dom";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
 import DashboardDetails from "../ui/Dashboard/dashboardDetails";
-import PostModeration from "../ui/Admin/PostModeration";
+import PostModeration from "../ui/Moderation/PostModeration";
 
 // ── Sidebar nav ──────────────────────────────────────────────────────────────
 

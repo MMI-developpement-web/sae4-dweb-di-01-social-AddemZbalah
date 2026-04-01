@@ -1,5 +1,5 @@
 import { useEffect, useId, useMemo, useState, type ChangeEvent } from "react";
-import ConnexionBtn from "../Connexion-Inscription/Connexion-Inscription_Btn";
+import ConnexionBtn from "../Button/Connexion-Inscription_Btn";
 
 const MAX_IMAGE_SIZE = 10 * 1024 * 1024; // 10 MB for images
 const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50 MB for videos

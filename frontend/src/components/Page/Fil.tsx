@@ -1,8 +1,8 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { cva } from "class-variance-authority";
 import { cn } from "../../lib/utils";
-import PostWrapper from "../ui/Posts/PostWrapper";
-import Nav from "../ui/Navbar/nav";
+import PostWrapper from "../ui/Post/PostWrapper";
+import Nav from "../ui/Navigation/nav";
 import Suggestions, { type SuggestionUser } from "../ui/Suggestions/suggestions";
 import { getPosts, deletePost } from "../../lib/api";
 import { useStore } from "../../store/StoreContext";

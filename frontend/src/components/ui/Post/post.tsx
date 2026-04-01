@@ -2,7 +2,7 @@ import { cva, type VariantProps } from "class-variance-authority";
 import type { ButtonHTMLAttributes, ReactNode } from "react";
 import { useNavigate } from "react-router-dom";
 import { cn } from "../../../lib/utils";
-import LikeButton from "./LikeButton";
+import LikeButton from "../Button/LikeButton";
 
 
 const MessageCircleIcon = () => (

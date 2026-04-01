@@ -1,7 +1,7 @@
 import { useState, type FormEvent, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import ConnexionBtn from "../ui/Connexion-Inscription/Connexion-Inscription_Btn";
-import AddPosts from "../ui/Posts/addPosts";
+import ConnexionBtn from "../ui/Button/Connexion-Inscription_Btn";
+import AddPosts from "../ui/Form/addPosts";
 import { createPost, getCurrentUser, fileToBase64 } from "../../lib/api";
 
 const MAX_POST_LENGTH = 200;
