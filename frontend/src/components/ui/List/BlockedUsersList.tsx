@@ -68,13 +68,13 @@ export default function BlockedUsersList({ refreshTrigger = false }: BlockedUser
       {blockedUsers.length === 0 ? (
         <p className="text-secondary/60 text-sm">Aucun utilisateur bloqué</p>
       ) : (
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {blockedUsers.map(user => (
-            <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20">
-              <div className="flex-1">
+            <li key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20 list-none">
+              <article className="flex-1">
                 <p className="font-semibold text-white">{user.name}</p>
                 <p className="text-xs text-secondary/60">{user.mail}</p>
-              </div>
+              </article>
               <button
                 onClick={() => handleUnblock(user.id)}
                 disabled={unblockingId === user.id}
@@ -82,9 +82,9 @@ export default function BlockedUsersList({ refreshTrigger = false }: BlockedUser
               >
                 {unblockingId === user.id ? '...' : 'Débloquer'}
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </section>
   );

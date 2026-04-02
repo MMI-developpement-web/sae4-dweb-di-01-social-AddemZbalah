@@ -106,12 +106,13 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg max-h-screen overflow-y-auto">
+    <dialog className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <article className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg max-h-screen overflow-y-auto">
         <h2 className="text-2xl font-bold mb-4">Modifier le profil</h2>
 
-        <div className="space-y-4">
-          <div>
+        <fieldset className="space-y-4">
+          <fieldset>
+            <legend className="sr-only">Bio</legend>
             <label className="block text-sm font-medium mb-2">Bio</label>
             <textarea
               value={bio}
@@ -120,9 +121,10 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
               className={cn(inputFieldVariants())}
               rows={3}
             />
-          </div>
+          </fieldset>
 
-          <div>
+          <fieldset>
+            <legend className="sr-only">Localisation</legend>
             <label className="block text-sm font-medium mb-2">Localisation</label>
             <input
               type="text"
@@ -132,9 +134,10 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
               className={cn(inputFieldVariants())}
               placeholder="Ex: Paris, France"
             />
-          </div>
+          </fieldset>
 
-          <div>
+          <fieldset>
+            <legend className="sr-only">Site Web</legend>
             <label className="block text-sm font-medium mb-2">Site Web</label>
             <input
               type="url"
@@ -144,9 +147,10 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
               className={cn(inputFieldVariants())}
               placeholder="https://exemple.com"
             />
-          </div>
+          </fieldset>
 
-          <div>
+          <fieldset>
+            <legend className="sr-only">Photo de profil</legend>
             <label className="block text-sm font-medium mb-2">Photo de profil</label>
             {profilePhoto && (
               <img src={profilePhoto} alt="Aperçu" className="w-20 h-20 rounded-full object-cover mb-2 border border-gray-300" />
@@ -165,9 +169,10 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
             >
               {profilePhotoFile ? `✓ ${profilePhotoFile.name}` : '📁 Choisir une photo'}
             </button>
-          </div>
+          </fieldset>
 
-          <div>
+          <fieldset>
+            <legend className="sr-only">Bannière</legend>
             <label className="block text-sm font-medium mb-2">Bannière</label>
             {bannerImage && (
               <img src={bannerImage} alt="Aperçu" className="w-full h-20 object-cover mb-2 rounded border border-gray-300" />
@@ -186,14 +191,14 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
             >
               {bannerImageFile ? `✓ ${bannerImageFile.name}` : '📁 Choisir une bannière'}
             </button>
-          </div>
+          </fieldset>
 
           {message && (
-            <div className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
+            <aside className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
               {message}
-            </div>
+            </aside>
           )}
-        </div>
+        </fieldset>
 
         <div className="flex gap-2 mt-6">
           <button
@@ -211,7 +216,7 @@ export default function ProfileEdit({ user, onClose, onSave }: ProfileEditProps)
             {isLoading ? 'Enregistrement...' : 'Enregistrer'}
           </button>
         </div>
-      </div>
-    </div>
+      </article>
+    </dialog>
   );
 }

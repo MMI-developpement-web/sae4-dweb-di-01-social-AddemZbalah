@@ -264,7 +264,7 @@ export default function Post({
           </button>
         </figure>
 
-        <div className="flex flex-1 flex-col gap-1">
+        <header className="flex flex-1 flex-col gap-1">
           <div className="flex items-center gap-1.5">
             <button
               onClick={handleAuthorClick}
@@ -285,7 +285,7 @@ export default function Post({
               </>
             )}
           </div>
-        </div>
+        </header>
 
         {onDelete && (
           <button

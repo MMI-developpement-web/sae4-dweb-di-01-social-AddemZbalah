@@ -70,9 +70,9 @@ export default function FollowingUsersList({ userId, refreshTrigger = false }: F
       {followingUsers.length === 0 ? (
         <p className="text-secondary/60 text-sm">Vous ne suivez personne</p>
       ) : (
-        <div className="space-y-3">
+        <ul className="space-y-3">
           {followingUsers.map(user => (
-            <div key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors">
+            <li key={user.id} className="flex items-center justify-between p-3 rounded-lg bg-secondary/10 border border-secondary/20 hover:bg-secondary/15 transition-colors list-none">
               <Link
                 to={`/profil/${user.id}`}
                 className="flex-1 hover:opacity-80 transition-opacity"
@@ -87,9 +87,9 @@ export default function FollowingUsersList({ userId, refreshTrigger = false }: F
               >
                 {unfollowingId === user.id ? '...' : 'Ne plus suivre'}
               </button>
-            </div>
+            </li>
           ))}
-        </div>
+        </ul>
       )}
     </section>
   );

@@ -83,9 +83,9 @@ export default function AddPosts({ onMediaChange }: AddPostsProps) {
 			</h2>
 
 			{errorMessage && (
-				<div className="mb-4 rounded-lg bg-red-500/20 p-3 text-sm text-red-400">
+				<aside className="mb-4 rounded-lg bg-red-500/20 p-3 text-sm text-red-400">
 					{errorMessage}
-				</div>
+				</aside>
 			)}
 
 			<label

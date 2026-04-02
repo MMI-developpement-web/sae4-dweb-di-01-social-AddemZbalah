@@ -215,15 +215,15 @@ export default function Utilisateurs() {
           </header>
 
           {/* Avatar */}
-          <div className="mb-8 lg:mb-10">
-            <div className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10 lg:h-36 lg:w-36">
+          <section className="mb-8 lg:mb-10">
+            <figure className="flex h-24 w-24 items-center justify-center overflow-hidden rounded-full border-2 border-primary/30 bg-primary/10 lg:h-36 lg:w-36">
 
               <AvatarIcon />
-            </div>
-          </div>
+            </figure>
+          </section>
 
           {/* Info fields */}
-          <div className="flex w-full max-w-xl flex-col">
+          <section className="flex w-full max-w-xl flex-col">
             <EditableField label="Nom d'utilisateur :" initialValue="Alex Chen" />
             <EditableField label="Tag :" initialValue="@alexchen" />
             <EditableField label="Adresse email :" initialValue="alexchen@outlook.fr" />
@@ -245,7 +245,7 @@ export default function Utilisateurs() {
                 </span>
               </div>
             </div>
-          </div>
+          </section>
         </main>
       </div>
     </>

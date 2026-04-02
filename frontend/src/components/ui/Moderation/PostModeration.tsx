@@ -65,17 +65,17 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
   }
 
   return (
-    <div className="space-y-4">
+    <section className="space-y-4">
       <h2 className="text-xl font-bold text-white mb-4">Contenu à modérer</h2>
 
       {content.length === 0 ? (
-        <div className="text-center py-8 text-secondary/70">
+        <aside className="text-center py-8 text-secondary/70">
           Aucun contenu trouvé
-        </div>
+        </aside>
       ) : (
         <div className="space-y-3">
           {content.map((item) => (
-            <div
+            <article
               key={`${item.type}-${item.id}`}
               className={`rounded-lg p-4 border space-y-3 ${
                 item.type === 'reply'
@@ -84,7 +84,7 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
               }`}
             >
               {/* Content Info */}
-              <div className="flex items-start justify-between">
+              <header className="flex items-start justify-between">
                 <div>
                   <div className="flex items-center gap-2 mb-1">
                     <p className="font-semibold text-white">{item.author?.name}</p>
@@ -123,15 +123,15 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
                     );
                   }}
                 />
-              </div>
+              </header>
 
               {/* Content */}
-              <div className="bg-black/30 rounded p-3">
+              <section className="bg-black/30 rounded p-3">
                 <p className="text-secondary text-sm overflow-wrap-break-word">
                   {item.type === 'post' ? item.content : item.textContent}
                 </p>
                 {item.mediaUrl && (
-                  <div className="mt-2">
+                  <figure className="mt-2">
                     {item.mediaUrl.match(/\.(mp4|webm|ogg)$/i) || item.mediaUrl.match(/^data:video\//i) ? (
                       <video
                         src={item.mediaUrl}
@@ -145,22 +145,22 @@ export default function PostModeration({ searchTerm = '' }: PostModerationProps)
                         className="w-full rounded max-h-64 object-cover"
                       />
                     )}
-                  </div>
+                  </figure>
                 )}
-              </div>
+              </section>
 
               {/* Status Badge */}
               {(item.isCensored || item.censored) && (
-                <div className="bg-yellow-500/20 border border-yellow-500/50 rounded p-2">
+                <aside className="bg-yellow-500/20 border border-yellow-500/50 rounded p-2">
                   <p className="text-yellow-400 text-sm font-medium">
                     ⚠️ Ce contenu a été censuré
                   </p>
-                </div>
+                </aside>
               )}
-            </div>
+            </article>
           ))}
         </div>
       )}
-    </div>
+    </section>
   );
 }

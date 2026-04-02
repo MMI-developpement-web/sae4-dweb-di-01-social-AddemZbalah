@@ -103,19 +103,19 @@ export default function Suggestions({
 			<ul className="flex w-full flex-col" role="list">
 				{suggestions.map((user) => (
 					<li key={user.id} className={cn(suggestionRowVariants({ rowDensity }))}>
-						<div className="flex min-w-0 items-center gap-4">
+						<header className="flex min-w-0 items-center gap-4">
 							<img
 								src={user.avatar || FALLBACK_AVATAR}
 								alt={user.name}
 								className="h-14 w-14 shrink-0 rounded-full object-cover"
 							/>
-							<div className="min-w-0">
+							<hgroup className="min-w-0">
 								<p className="truncate text-lg font-semibold leading-tight text-secondary">
 									{user.name}
 								</p>
 								<p className="truncate text-base text-secondary/60">@{user.handle}</p>
-							</div>
-						</div>
+							</hgroup>
+						</header>
 
 						<ConnexionBtn
 							type="button"

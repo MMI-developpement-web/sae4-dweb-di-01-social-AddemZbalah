@@ -30,7 +30,7 @@ export default function ConnexionVerif({
   ariaLabel,
 }: ConnexionVerifProps) {
   return (
-    <div
+    <aside
       className={cn(verificationItemVariants({ status }))}
       role="status"
       aria-label={ariaLabel}
@@ -46,7 +46,7 @@ export default function ConnexionVerif({
       <p className="text-xs font-semibold leading-tight text-secondary break-words">
         {children}
       </p>
-    </div>
+    </aside>
   );
 }
 

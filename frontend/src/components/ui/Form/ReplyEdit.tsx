@@ -65,11 +65,11 @@ export default function ReplyEdit({ replyId, initialContent, onClose, onSave }: 
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+    <dialog className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <article className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Modifier la réponse</h2>
 
-        <div className="space-y-4">
+        <fieldset className="space-y-4">
           <div>
             <textarea
               value={content}
@@ -82,11 +82,11 @@ export default function ReplyEdit({ replyId, initialContent, onClose, onSave }: 
           </div>
 
           {message && (
-            <div className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
+            <aside className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
               {message}
-            </div>
+            </aside>
           )}
-        </div>
+        </fieldset>
 
         <div className="flex gap-2 mt-6">
           <button
@@ -104,7 +104,7 @@ export default function ReplyEdit({ replyId, initialContent, onClose, onSave }: 
             {isLoading ? 'Enregistrement...' : 'Enregistrer'}
           </button>
         </div>
-      </div>
-    </div>
+      </article>
+    </dialog>
   );
 }

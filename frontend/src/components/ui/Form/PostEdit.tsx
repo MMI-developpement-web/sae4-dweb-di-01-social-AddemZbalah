@@ -92,12 +92,13 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
+    <dialog className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+      <article className="bg-white rounded-lg p-6 w-full max-w-md shadow-lg">
         <h2 className="text-2xl font-bold mb-4">Modifier le post</h2>
 
-        <div className="space-y-4">
-          <div>
+        <fieldset className="space-y-4">
+          <fieldset>
+            <legend className="sr-only">Contenu</legend>
             <label className="block text-sm font-medium mb-2">Contenu</label>
             <textarea
               value={content}
@@ -107,9 +108,10 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
               rows={4}
             />
             <span className="text-xs text-gray-500">{content.length}/280</span>
-          </div>
+          </fieldset>
 
-          <div>
+          <fieldset>
+            <legend className="sr-only">Média</legend>
             <label className="block text-sm font-medium mb-2">Média (optionnel)</label>
             {mediaUrl && (
               mediaUrl.match(/\.(mp4|webm|ogg)$/i) || mediaUrl.match(/^data:video\//i) ? (
@@ -132,16 +134,16 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
             >
               {mediaFile ? `✓ ${mediaFile.name}` : '📁 Choisir un média'}
             </button>
-          </div>
+          </fieldset>
 
           {message && (
-            <div className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
+            <aside className={cn(messageVariants({ type: message.includes('✓') ? 'success' : 'error' }))}>
               {message}
-            </div>
+            </aside>
           )}
-        </div>
+        </fieldset>
 
-        <div className="flex gap-2 mt-6">
+        <footer className="flex gap-2 mt-6">
           <button
             onClick={onClose}
             disabled={isLoading}
@@ -156,8 +158,8 @@ export default function PostEdit({ postId, initialContent, initialMediaUrl, onCl
           >
             {isLoading ? 'Enregistrement...' : 'Enregistrer'}
           </button>
-        </div>
-      </div>
-    </div>
+        </footer>
+      </article>
+    </dialog>
   );
 }

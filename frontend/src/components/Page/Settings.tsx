@@ -41,15 +41,16 @@ export default function Settings() {
         {/* Settings Content */}
         <section className="p-6 space-y-8">
           {/* Auto-Refresh Section */}
-          <div className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-4">
-            <div>
+          <fieldset className="rounded-xl border border-primary/20 bg-primary/5 p-6 space-y-4">
+            <legend className="sr-only">Paramètres de rafraîchissement automatique</legend>
+            <header>
               <h2 className="text-lg font-semibold text-primary mb-2">
                 Rafraîchissement automatique
               </h2>
               <p className="text-sm text-secondary/70">
                 Activez le rafraîchissement automatique pour mettre à jour votre fil d'actualité à intervalles réguliers.
               </p>
-            </div>
+            </header>
 
             {/* Toggle Switch */}
             <div className="flex items-center justify-between py-4">
@@ -79,7 +80,8 @@ export default function Settings() {
 
             {/* Interval Selection */}
             {autoRefreshEnabled && (
-              <div className="space-y-3 pt-4 border-t border-primary/20">
+              <fieldset className="space-y-3 pt-4 border-t border-primary/20">
+                <legend className="sr-only">Intervalle de rafraîchissement</legend>
                 <label htmlFor="refresh-interval" className="block text-sm font-medium text-primary">
                   Intervalle de rafraîchissement
                 </label>
@@ -97,7 +99,7 @@ export default function Settings() {
                     secondes
                   </span>
                 </div>
-                <div className="flex gap-2 text-xs text-secondary/60">
+                <nav className="flex gap-2 text-xs text-secondary/60">
                   <button
                     type="button"
                     onClick={() => setAutoRefreshInterval(30)}
@@ -126,10 +128,10 @@ export default function Settings() {
                   >
                     10m
                   </button>
-                </div>
-              </div>
+                </nav>
+              </fieldset>
             )}
-          </div>
+          </fieldset>
 
           {/* Save Button */}
           <div className="flex gap-3 pt-4">

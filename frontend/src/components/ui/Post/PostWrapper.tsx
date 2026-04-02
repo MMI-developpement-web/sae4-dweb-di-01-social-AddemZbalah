@@ -136,19 +136,19 @@ export default function PostWrapper({
         timestamp={timestamp}
         content={
           isCensored ? (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
+            <aside className="bg-red-50 border border-red-200 rounded-lg p-4 text-center">
               <p className="text-red-700 font-semibold">🚫 Post censuré</p>
               <p className="text-red-600 text-sm mt-2">{currentContent}</p>
-            </div>
+            </aside>
           ) : currentMediaUrl ? (
-            <div className="space-y-2">
+            <article className="space-y-2">
               <p>{currentContent}</p>
               {currentMediaUrl.match(/\.(mp4|webm|ogg)$/i) || currentMediaUrl.match(/^data:video\//i) ? (
                 <video src={currentMediaUrl} controls className="w-full rounded-lg max-h-96 object-cover" />
               ) : (
                 <img src={currentMediaUrl} alt="Post media" className="w-full rounded-lg max-h-96 object-cover" />
               )}
-            </div>
+            </article>
           ) : (
             currentContent
           )
@@ -183,7 +183,7 @@ export default function PostWrapper({
       )}
 
       {showReplies && !isCensored && (
-        <div className="px-4 py-2 ml-2 border-l-2 border-gray-200">
+        <section className="px-4 py-2 ml-2 border-l-2 border-gray-200">
           {/* Reply Form */}
           <ReplyForm postId={postId} onReplyAdded={handleReplyAdded} />
           
@@ -193,26 +193,26 @@ export default function PostWrapper({
               <p className="text-gray-400 text-sm">Chargement des réponses...</p>
             ) : replies.length > 0 ? (
               replies.map((reply: any) => (
-                <div key={reply.id} className="pl-4 pt-3 border-l border-gray-200 flex justify-between items-start gap-2">
+                <article key={reply.id} className="pl-4 pt-3 border-l border-gray-200 flex justify-between items-start gap-2">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
+                    <header className="flex items-center gap-2 mb-2">
                       {reply.author?.profilePhoto && (
                         <img src={reply.author.profilePhoto} alt="avatar" className="w-6 h-6 rounded-full" />
                       )}
                       <span className="font-bold text-sm text-white">{reply.author?.name || 'Utilisateur'}</span>
                       <span className="text-gray-500 text-xs">@{reply.author?.mail?.split('@')[0] || 'utilisateur'}</span>
                       <span className="text-gray-400 text-xs">{new Date(reply.createdAt).toLocaleDateString()}</span>
-                    </div>
+                    </header>
                     {reply.isCensored ? (
-                      <div className="bg-red-50 border border-red-200 rounded-lg p-3 my-2 text-center opacity-80 decoration-slice">
+                      <aside className="bg-red-50 border border-red-200 rounded-lg p-3 my-2 text-center opacity-80 decoration-slice">
                         <p className="text-red-700 text-xs font-semibold">🚫 Cette réponse a été censurée par un modérateur.</p>
-                      </div>
+                      </aside>
                     ) : (
                       <p className="text-white text-sm">{reply.textContent}</p>
                     )}
                   </div>
                   {currentUser && reply.author?.id === currentUser.id && !reply.isCensored && (
-                    <div className="flex gap-1">
+                    <nav className="flex gap-1">
                       <button
                         onClick={() => setEditingReplyId(reply.id)}
                         className="text-blue-500 hover:text-blue-600 hover:bg-blue-500/10 rounded px-2 py-1 text-xs"
@@ -227,15 +227,15 @@ export default function PostWrapper({
                       >
                         ✕
                       </button>
-                    </div>
+                    </nav>
                   )}
-                </div>
+                </article>
               ))
             ) : (
               <p className="text-gray-400 text-sm">Aucune réponse pour le moment</p>
             )}
           </div>
-        </div>
+        </section>
       )}
 
       {editingReplyId && (
