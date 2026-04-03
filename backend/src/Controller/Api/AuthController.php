@@ -10,6 +10,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Attribute\Route;
+use Symfony\Component\Security\Http\Attribute\IsGranted;
 use Symfony\Component\Serializer\SerializerInterface;
 
 class AuthController extends AbstractController
@@ -81,21 +82,13 @@ class AuthController extends AbstractController
     }
 
     #[Route('/api/user', name: 'api_user', methods: ['GET'])]
-    public function user(Request $request, \App\Repository\TokenRepository $tokenRepository, FollowRepository $followRepository): JsonResponse
+    #[IsGranted('ROLE_USER')]
+    public function user(FollowRepository $followRepository): JsonResponse
     {
-        $authorizationHeader = $request->headers->get('Authorization');
-        if (!$authorizationHeader || !preg_match('/Bearer\s+(.*)$/i', $authorizationHeader, $matches)) {
+        $user = $this->getUser();
+        if (!$user) {
             return $this->json(['error' => 'Non autorisé'], 401);
         }
-
-        $tokenValue = $matches[1];
-        $token = $tokenRepository->findOneBy(['value' => $tokenValue]);
-
-        if (!$token || $token->getExpiresAt() < new \DateTime()) {
-            return $this->json(['error' => 'Token invalide ou expiré'], 401);
-        }
-
-        $user = $token->getUserId();
 
         return $this->json([
             'id' => $user->getId(),
@@ -137,25 +130,16 @@ class AuthController extends AbstractController
     }
 
     #[Route('/api/user/update', name: 'api_user_update', methods: ['POST'])]
+    #[IsGranted('ROLE_USER')]
     public function updateUser(
         Request $request,
-        \App\Repository\TokenRepository $tokenRepository,
-        UserRepository $userRepository,
         \Doctrine\ORM\EntityManagerInterface $entityManager
     ): JsonResponse {
-        $authorizationHeader = $request->headers->get('Authorization');
-        if (!$authorizationHeader || !preg_match('/Bearer\s+(.*)$/i', $authorizationHeader, $matches)) {
+        $user = $this->getUser();
+        if (!$user) {
             return $this->json(['error' => 'Non autorisé'], 401);
         }
 
-        $tokenValue = $matches[1];
-        $token = $tokenRepository->findOneBy(['value' => $tokenValue]);
-
-        if (!$token || $token->getExpiresAt() < new \DateTime()) {
-            return $this->json(['error' => 'Token invalide ou expiré'], 401);
-        }
-
-        $user = $token->getUserId();
         $data = json_decode($request->getContent(), true);
 
         if (isset($data['bio'])) {

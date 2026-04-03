@@ -217,7 +217,7 @@ export default function Fil() {
           </svg>
         </button>
         <img
-          src={`${import.meta.env.BASE_URL}/assets/logo.png`}
+          src="/assets/logo.png"
           alt="Logo Zbalah"
           className="pointer-events-auto h-9 w-auto object-contain"
         />
