@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 export default defineConfig({
-  base: "/",
+  base: "/~zbalah3/sae4-dweb-di-01-social-AddemZbalah/Cycle-C/frontend/dist/",
   plugins: [react(), tailwindcss()],
   preview: {
    port: 5173,
@@ -14,6 +14,13 @@ export default defineConfig({
    strictPort: true,
    host: true,
    origin: "http://localhost:8090",
-   allowedHosts: ["sae-frontend"]
+   allowedHosts: ["sae-frontend"],
+   proxy: {
+     '/api': {
+       target: 'http://sae-nginx:8080',
+       changeOrigin: true,
+       rewrite: (path) => path.replace(/^\/api/, '/api'),
+     }
+   }
   },
 });
